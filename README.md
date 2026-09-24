@@ -91,15 +91,15 @@ Có 3 giải pháp để tiếp tục làm việc:
   * Kết nối qua VPN nội bộ / Tailscale / VS Code Remote - SSH vào máy công ty.
   * Mở terminal từ xa và gõ `agy -c` (hoặc `screen -r omniorder`). Toàn bộ database, dịch vụ và phiên làm việc đều sẵn sàng ngay lập tức.
 
-* **Cách 2: Điều khiển phiên từ xa qua `agy remote-control`**:
-  * **Tại máy công ty**: Bật daemon điều khiển:
-    ```bash
-    agy remote-control start --name "office-workstation"
-    ```
-  * **Tại laptop cá nhân**: Kết nối về máy công ty:
-    ```bash
-    agy --remote-control
-    ```
+* **Cách 2: Điều khiển phiên từ xa qua `agy remote-control` (ĐÃ KÍCH HOẠT SẴN)**:
+  - **Trạng thái daemon**: Đang hoạt động (`active`), chế độ linger đã bật (tự động chạy ngầm và duy trì kể cả sau khi logout).
+  - **Tên máy (Instance name)**: `hung-workstation`
+  - **Cách truy cập từ laptop cá nhân**:
+    - **Cách A (Qua Web)**: Mở trình duyệt tại **https://antigravity.google.com**, đăng nhập tài khoản và chọn thiết bị **`hung-workstation`** để điều khiển trực tiếp phiên làm việc.
+    - **Cách B (Qua CLI)**: Mở terminal trên laptop cá nhân và chạy:
+      ```bash
+      agy --remote-control
+      ```
 
 * **Cách 3: Đồng bộ qua Git & Bắt nhịp phiên mới tại nhà trong vài giây**:
   1. **Tại máy công ty**: Push code mới nhất lên repo:
