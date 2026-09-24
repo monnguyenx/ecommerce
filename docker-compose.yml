@@ -1,0 +1,126 @@
+services:
+  # ==========================================
+  # 1. FRONTEND SERVICE (UI)
+  # ==========================================
+  frontend:
+    build:
+      context: ./services/frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    env_file:
+      - ./services/frontend/.env
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - user-service
+      - product-service
+
+  # ==========================================
+  # 2. AUTH SERVICE (Database: ecommerce_auth_db)
+  # ==========================================
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: ecommerce-auth-service
+    ports:
+      - "${AUTH_SERVICE_PORT:-8001}:8001"
+    env_file:
+      - ./services/auth-service/.env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DATABASE_URL=postgres://${POSTGRES_USER:-ecommerce_user}:${POSTGRES_PASSWORD:-ecommerce_secret}@postgres:5432/ecommerce_auth_db
+      - USER_SERVICE_URL=http://user-service:8002
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # ==========================================
+  # 3. USER SERVICE (Database: ecommerce_user_db)
+  # ==========================================
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: ecommerce-user-service
+    ports:
+      - "${USER_SERVICE_PORT:-8002}:8002"
+    env_file:
+      - ./services/user-service/.env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DATABASE_URL=postgres://${POSTGRES_USER:-ecommerce_user}:${POSTGRES_PASSWORD:-ecommerce_secret}@postgres:5432/ecommerce_user_db
+      - AUTH_SERVICE_URL=http://auth-service:8001
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # ==========================================
+  # 4. PRODUCT & ITEM SERVICE (Database: ecommerce_product_db)
+  # ==========================================
+  product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    container_name: ecommerce-product-service
+    ports:
+      - "${PRODUCT_SERVICE_PORT:-8003}:8003"
+    env_file:
+      - ./services/product-service/.env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DATABASE_URL=postgres://${POSTGRES_USER:-ecommerce_user}:${POSTGRES_PASSWORD:-ecommerce_secret}@postgres:5432/ecommerce_product_db
+      - AUTH_SERVICE_URL=http://auth-service:8001
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  # ==========================================
+  # 5. HẠ TẦNG DỮ LIỆU CHUNG (POSTGRESQL & REDIS)
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ecommerce_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecommerce_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-ecommerce_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ecommerce-network
+    restart: unless-stopped
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
