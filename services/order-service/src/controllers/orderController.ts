@@ -269,4 +269,94 @@ export class OrderController {
       res.status(500).json({ success: false, message: 'Lỗi thêm mốc tracking' })
     }
   }
+
+  // POST /api/v1/orders/:id/qc-photos (Admin upload/update QC photos & inspection notes)
+  static async updateQcPhotos(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      const { qcPhotos, qcNote, qcStatus } = req.body
+
+      const updated = await OrderModel.updateQcPhotos(id, {
+        qcPhotos: Array.isArray(qcPhotos) ? qcPhotos : [],
+        qcNote,
+        qcStatus
+      })
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Đã cập nhật ảnh chụp thực tế kiểm hàng QC tại Kho Quảng Châu!',
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] updateQcPhotos error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi cập nhật ảnh kiểm hàng QC' })
+    }
+  }
+
+  // PATCH /api/v1/orders/:id/qc-status (Customer/Admin approve or reject QC photos)
+  static async updateQcStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      const { qcStatus, note } = req.body
+
+      if (!qcStatus || !['none', 'pending', 'approved', 'rejected'].includes(qcStatus)) {
+        res.status(400).json({
+          success: false,
+          message: 'Trạng thái QC không hợp lệ (hợp lệ: pending, approved, rejected)'
+        })
+        return
+      }
+
+      const updated = await OrderModel.updateQcStatus(id, qcStatus, note)
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
+        return
+      }
+
+      const msg = qcStatus === 'approved'
+        ? 'Bạn đã duyệt ảnh QC thành công! Đơn hàng sẽ được đóng gói niêm phong gửi về Việt Nam.'
+        : qcStatus === 'rejected'
+        ? 'Đã gửi yêu cầu đổi trả / hoàn hàng tại Trung Quốc tới chuyên viên mua hộ!'
+        : 'Đã cập nhật trạng thái QC kiểm hàng.'
+
+      res.status(200).json({
+        success: true,
+        message: msg,
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] updateQcStatus error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi cập nhật trạng thái QC' })
+    }
+  }
+
+  // POST /api/v1/orders/:id/confirm-deposit (Xác nhận khớp thanh toán cọc 50% qua VietQR)
+  static async confirmDeposit(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      const updated = await OrderModel.confirmDeposit(id)
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Đã nhận thanh toán đặt cọc 50% tự động qua VietQR Napas 247! Đơn hàng được kích hoạt.',
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] confirmDeposit error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi xác nhận đặt cọc đơn hàng' })
+    }
+  }
 }
+
+

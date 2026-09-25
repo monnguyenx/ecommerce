@@ -22,6 +22,7 @@ import {
 import { productApi, type Product, type ProductItem, type ProductStats } from '../../services/productApi'
 import type { User } from '../../types/auth'
 import { ProductDetailView } from './ProductDetailView'
+import { SmartUrlSourcingBox } from './SmartUrlSourcingBox'
 
 interface ProductManagementViewProps {
   user: User
@@ -259,6 +260,13 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
           <span>{actionMessage}</span>
         </div>
       )}
+
+      {/* SMART URL SOURCING BOX (TAOBAO / 1688 / TMALL) */}
+      <SmartUrlSourcingBox
+        user={user}
+        onProductCreated={() => loadData()}
+        onGoToTracking={onGoToTracking}
+      />
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">

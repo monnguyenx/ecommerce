@@ -7,11 +7,12 @@ import {
   ShieldCheck,
   Layers,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Calculator
 } from 'lucide-react'
 import type { User } from '../../types/auth'
 
-export type ActiveScreen = 'products' | 'orders' | 'users' | 'auth' | 'topology'
+export type ActiveScreen = 'products' | 'orders' | 'calculator' | 'users' | 'auth' | 'topology'
 
 interface SidebarProps {
   activeScreen: ActiveScreen
@@ -49,6 +50,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Compass className="w-5 h-5" />,
       badge: 'Port :8004',
       port: '8004'
+    },
+    {
+      id: 'calculator',
+      label: 'Tính Cước & Cân Nặng',
+      sublabel: 'IATA Volumetric (TQ ➔ VN)',
+      icon: <Calculator className="w-5 h-5" />,
+      badge: 'Calculator',
+      port: 'Tool'
     },
     {
       id: 'users',

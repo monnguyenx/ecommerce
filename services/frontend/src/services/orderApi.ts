@@ -30,6 +30,8 @@ export interface OrderTrackingEvent {
   isCurrent: boolean
 }
 
+export type QcStatus = 'none' | 'pending' | 'approved' | 'rejected'
+
 export interface Order {
   id: string
   orderCode: string
@@ -57,6 +59,10 @@ export interface Order {
   currentStatus: OrderStatus
   estimatedDeliveryDays: string
   estimatedDeliveryDate?: string
+  qcPhotos?: string[]
+  qcStatus?: QcStatus
+  qcNote?: string
+  qcInspectedAt?: string
   trackingEvents?: OrderTrackingEvent[]
   createdAt: string
   updatedAt: string
@@ -263,5 +269,61 @@ export const orderApi = {
     } catch (err: any) {
       return { success: false, message: err.message || 'Lỗi thêm mốc tracking' }
     }
+  },
+
+  // Cập nhật bộ ảnh QC thực tế tại kho Quảng Châu & ghi chú kiểm hàng (Admin)
+  async updateQcPhotos(
+    orderId: string,
+    payload: {
+      qcPhotos: string[]
+      qcNote?: string
+      qcStatus?: QcStatus
+    }
+  ): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/qc-photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi cập nhật ảnh QC kiểm hàng' }
+    }
+  },
+
+  // Duyệt ảnh QC hoặc yêu cầu đổi trả tại Trung Quốc (Customer / Admin)
+  async updateQcStatus(
+    orderId: string,
+    qcStatus: QcStatus,
+    note?: string
+  ): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/qc-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qcStatus, note })
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi cập nhật trạng thái QC' }
+    }
+  },
+
+  // Xác nhận thanh toán cọc 50% tự động qua VietQR Napas 247
+  async confirmDeposit(orderId: string): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/confirm-deposit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi xác nhận thanh toán đặt cọc' }
+    }
   }
 }
+

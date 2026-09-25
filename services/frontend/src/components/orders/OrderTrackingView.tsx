@@ -17,15 +17,27 @@ import {
   Edit3,
   Plus,
   Save,
-  ShieldCheck
+  ShieldCheck,
+  Camera,
+  Check,
+  X,
+  AlertTriangle,
+  Maximize2,
+  Eye,
+  Sparkles,
+  QrCode,
+  Calculator
 } from 'lucide-react'
+import { VietQrDepositModal } from './VietQrDepositModal'
+import { ShippingCostCalculator } from '../calculator/ShippingCostCalculator'
 import {
   orderApi,
   type Order,
   type OrderStats,
   type CheckpointCode,
   type OrderTrackingEvent,
-  type OrderStatus
+  type OrderStatus,
+  type QcStatus
 } from '../../services/orderApi'
 import type { User } from '../../types/auth'
 
@@ -68,6 +80,18 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
   const [newEventLocation, setNewEventLocation] = useState('')
   const [newEventDesc, setNewEventDesc] = useState('')
   const [isAddingEvent, setIsAddingEvent] = useState(false)
+
+  // QC Inspection Photos State (Option 1)
+  const [activePhotoLightbox, setActivePhotoLightbox] = useState<string | null>(null)
+  const [isQcActionLoading, setIsQcActionLoading] = useState(false)
+  const [showQcRejectModal, setShowQcRejectModal] = useState(false)
+  const [qcRejectReason, setQcRejectReason] = useState('')
+  const [showAdminQcModal, setShowAdminQcModal] = useState(false)
+  const [adminQcPhotosInput, setAdminQcPhotosInput] = useState('')
+  const [adminQcNoteInput, setAdminQcNoteInput] = useState('')
+  const [adminQcStatusInput, setAdminQcStatusInput] = useState<QcStatus>('pending')
+  const [showVietQrModal, setShowVietQrModal] = useState(false)
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false)
 
   const getCheckpointStepNumber = (code?: CheckpointCode): number => {
     switch (code) {
@@ -279,6 +303,109 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
     }
   }
 
+  // QC Handlers (Option 1)
+  const handleApproveQc = async () => {
+    if (!selectedOrder) return
+    setIsQcActionLoading(true)
+    try {
+      const res = await orderApi.updateQcStatus(selectedOrder.id, 'approved')
+      if (res.success && res.data) {
+        setSelectedOrder(res.data)
+        setActionMessage('✓ Bạn đã duyệt ảnh kiểm hàng thành công! Đơn hàng sẽ được đóng gói gửi về Việt Nam.')
+        setTimeout(() => setActionMessage(null), 5000)
+        loadData(searchTerm)
+      } else {
+        alert(res.message || 'Lỗi duyệt ảnh kiểm hàng')
+      }
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setIsQcActionLoading(false)
+    }
+  }
+
+  const handleRejectQc = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedOrder) return
+    if (!qcRejectReason.trim()) {
+      alert('Vui lòng nhập lý do yêu cầu đổi trả hàng tại Trung Quốc')
+      return
+    }
+    setIsQcActionLoading(true)
+    try {
+      const res = await orderApi.updateQcStatus(
+        selectedOrder.id,
+        'rejected',
+        `Yêu cầu đổi/trả từ khách hàng: ${qcRejectReason.trim()}`
+      )
+      if (res.success && res.data) {
+        setSelectedOrder(res.data)
+        setShowQcRejectModal(false)
+        setQcRejectReason('')
+        setActionMessage('⚠️ Đã gửi yêu cầu đổi/trả hàng tại TQ. Chuyên viên OmniOrder sẽ khiếu nại shop nhà cung cấp ngay!')
+        setTimeout(() => setActionMessage(null), 6000)
+        loadData(searchTerm)
+      } else {
+        alert(res.message || 'Lỗi gửi yêu cầu đổi trả')
+      }
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setIsQcActionLoading(false)
+    }
+  }
+
+  const handleOpenAdminQcModal = () => {
+    if (!selectedOrder) return
+    setAdminQcPhotosInput((selectedOrder.qcPhotos || []).join('\n'))
+    setAdminQcNoteInput(selectedOrder.qcNote || '')
+    setAdminQcStatusInput(selectedOrder.qcStatus || 'pending')
+    setShowAdminQcModal(true)
+  }
+
+  const handleSaveAdminQc = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedOrder) return
+    setIsQcActionLoading(true)
+    try {
+      const photoUrls = adminQcPhotosInput
+        .split('\n')
+        .map((u) => u.trim())
+        .filter((u) => u.length > 0)
+
+      const res = await orderApi.updateQcPhotos(selectedOrder.id, {
+        qcPhotos: photoUrls,
+        qcNote: adminQcNoteInput.trim(),
+        qcStatus: adminQcStatusInput
+      })
+
+      if (res.success && res.data) {
+        setSelectedOrder(res.data)
+        setShowAdminQcModal(false)
+        setActionMessage('✓ Đã cập nhật ảnh chụp kiểm hàng QC thực tế tại Kho Quảng Châu thành công!')
+        setTimeout(() => setActionMessage(null), 5000)
+        loadData(searchTerm)
+      } else {
+        alert(res.message || 'Lỗi cập nhật ảnh QC')
+      }
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setIsQcActionLoading(false)
+    }
+  }
+
+  const handleQuickQcSample = () => {
+    const sampleUrls = [
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1200&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1200&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=1200&auto=format&fit=crop&q=80'
+    ]
+    setAdminQcPhotosInput(sampleUrls.join('\n'))
+    setAdminQcNoteInput('Đã kiểm tra tại Kho Quảng Châu Hub: Nguyên seal hộp Apple, ngoại quan màu Titan Tự Nhiên không trầy xước, phụ kiện đầy đủ, cân nặng chuẩn 650g.')
+    setAdminQcStatusInput('pending')
+  }
+
   const currentStep = getCheckpointStepNumber(selectedOrder?.currentCheckpoint)
 
   return (
@@ -320,6 +447,14 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowCalculatorModal(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 cursor-pointer transition-all btn-press"
+            >
+              <Calculator className="w-4 h-4" />
+              <span>Máy Tính Cước &amp; Cân Nặng</span>
+            </button>
+
             <button
               onClick={() => loadData()}
               className="px-4 py-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-semibold flex items-center gap-2 border border-slate-700 transition-colors cursor-pointer"
@@ -570,6 +705,15 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       <p className="text-[10px] text-amber-500 font-medium">Thu khi nhận hàng</p>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowVietQrModal(true)}
+                    className="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-blue-600/30 to-indigo-600/30 hover:from-blue-600/40 hover:to-indigo-600/40 border border-blue-500/40 text-blue-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer btn-press shadow-sm"
+                  >
+                    <QrCode className="w-4 h-4 text-blue-400" />
+                    <span>Xem Mã VietQR Napas 247 Của Đơn Hàng</span>
+                  </button>
                 </div>
               </div>
 
@@ -767,6 +911,172 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
           {/* CỘT PHẢI: TIMELINE ĐỊNH VỊ 6 CHẶNG XUYÊN BIÊN GIỚI (7 Cột) */}
           <div className="lg:col-span-7 space-y-6">
+            {/* CARD 1: LIVE QC INSPECTION PHOTOS (ẢNH CHỤP THỰC TẾ KIỂM HÀNG TẠI KHO QUẢNG CHÂU) */}
+            <div className="p-6 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border border-slate-800 shadow-2xl space-y-5">
+              {/* Header with Camera Icon, Status Badge & Admin Manage Button */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5">
+                    <span className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-md shadow-amber-500/10">
+                      <Camera className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
+                        Ảnh Chụp Thực Tế Kiểm Hàng Tại Kho TQ
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                          QC Live Photos
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Kiểm tra ngoại quan, seal, phụ kiện tại Kho Quảng Châu Hub trước khi bay về VN
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  {/* QC Status Badge */}
+                  {selectedOrder.qcStatus === 'approved' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm shadow-emerald-500/10">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Đã duyệt gửi về VN</span>
+                    </span>
+                  )}
+                  {selectedOrder.qcStatus === 'rejected' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-300 border border-red-500/30">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>Yêu cầu đổi/trả TQ</span>
+                    </span>
+                  )}
+                  {(!selectedOrder.qcStatus || selectedOrder.qcStatus === 'pending') && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Chờ khách duyệt ảnh</span>
+                    </span>
+                  )}
+
+                  {canManage && (
+                    <button
+                      onClick={handleOpenAdminQcModal}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 cursor-pointer transition-colors"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Quản lý QC</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* QC Note & Inspector Info */}
+              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-semibold text-slate-200">Ghi chú kiểm định kho TQ: </span>
+                    <span className="text-slate-300 leading-relaxed">
+                      {selectedOrder.qcNote || 'Đã kiểm tra bao bì, nhãn phụ, tem niêm phong và ngoại quan tại trạm trung chuyển Quảng Châu Hub.'}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1 flex-shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  <span>{selectedOrder.qcInspectedAt ? new Date(selectedOrder.qcInspectedAt).toLocaleString('vi-VN') : 'Mới cập nhật'}</span>
+                </div>
+              </div>
+
+              {/* QC Photos Grid */}
+              {selectedOrder.qcPhotos && selectedOrder.qcPhotos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {selectedOrder.qcPhotos.map((photoUrl, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setActivePhotoLightbox(photoUrl)}
+                      className="group relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-[4/3] cursor-pointer hover:border-amber-500/60 transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-amber-500/10"
+                    >
+                      <img
+                        src={photoUrl}
+                        alt={`QC photo ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      {/* Watermark overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
+
+                      {/* Top badge */}
+                      <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-mono text-amber-300 border border-amber-500/20">
+                        <Eye className="w-3 h-3" />
+                        <span>Ảnh QC #{idx + 1}</span>
+                      </div>
+
+                      <div className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Maximize2 className="w-3.5 h-3.5" />
+                      </div>
+
+                      {/* Bottom Watermark */}
+                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-mono text-slate-300">
+                        <span className="truncate">Kho Quảng Châu &bull; {selectedOrder.orderCode}</span>
+                        <span className="text-amber-400 font-bold shrink-0">HD 4K</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-slate-950 border border-dashed border-slate-800 text-center space-y-2">
+                  <Camera className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
+                  <p className="text-xs font-semibold text-slate-300">Chưa có ảnh kiểm hàng thực tế</p>
+                  <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                    Kiện hàng đang di chuyển từ nhà cung cấp tới Kho Tổng Quảng Châu Hub. Ngay khi nhân viên kho mở hộp kiểm định, ảnh HD thực tế sẽ tự động hiển thị tại đây.
+                  </p>
+                </div>
+              )}
+
+              {/* Customer Approval / Action Bar */}
+              <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-xs text-slate-400">
+                  {selectedOrder.qcStatus === 'approved' ? (
+                    <span className="text-emerald-400 flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Kiện hàng đã được bạn duyệt chất lượng và đang được đóng gói niêm phong để chuyển về VN.
+                    </span>
+                  ) : selectedOrder.qcStatus === 'rejected' ? (
+                    <span className="text-red-400 flex items-center gap-1.5 font-medium">
+                      <AlertTriangle className="w-4 h-4" />
+                      Đã ghi nhận yêu cầu đổi trả tại Trung Quốc. Đơn vị đang đàm phán hoàn tiền/đổi hàng với Shop.
+                    </span>
+                  ) : (
+                    <span className="text-slate-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-400" />
+                      Kiểm tra kỹ hình ảnh thực tế. Bạn có quyền yêu cầu đổi/trả ngay tại TQ mà không mất phí quốc tế!
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setShowQcRejectModal(true)}
+                    disabled={isQcActionLoading}
+                    className="px-3.5 py-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-red-200 border border-red-800/50 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Yêu cầu Đổi / Trả tại TQ</span>
+                  </button>
+
+                  <button
+                    onClick={handleApproveQc}
+                    disabled={isQcActionLoading || selectedOrder.qcStatus === 'approved'}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50 transition-all btn-press"
+                  >
+                    {isQcActionLoading ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                    <span>{selectedOrder.qcStatus === 'approved' ? '✓ Đã Duyệt QC' : 'Duyệt Ảnh & Gửi Về VN'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* TIMELINE CARD */}
             <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div>
@@ -1142,6 +1452,244 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PHOTO LIGHTBOX (PHÓNG TO ẢNH QC HD 4K) */}
+      {activePhotoLightbox && (
+        <div
+          onClick={() => setActivePhotoLightbox(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-2xl animate-fade-in cursor-zoom-out"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl max-h-[90vh] bg-slate-900 rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden animate-scale-up cursor-default flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/80">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                  QC Live Photo &bull; Kho Quảng Châu Hub
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300 font-bold">
+                  {selectedOrder?.orderCode}
+                </span>
+              </div>
+              <button
+                onClick={() => setActivePhotoLightbox(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="relative overflow-auto flex items-center justify-center p-2 bg-black/60 max-h-[75vh]">
+              <img
+                src={activePhotoLightbox}
+                alt="QC Fullsize Preview"
+                className="max-h-[72vh] w-auto object-contain rounded-xl shadow-2xl"
+              />
+              <div className="absolute bottom-4 left-6 px-3 py-1.5 rounded-xl bg-black/70 backdrop-blur-md border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>OmniOrder Hub &bull; Đã kiểm định ngoại quan & tem nhãn</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: YÊU CẦU ĐỔI / TRẢ TẠI TRUNG QUỐC */}
+      {showQcRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-lg bg-slate-900/95 rounded-3xl border border-red-500/30 shadow-2xl p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-red-500/20 text-red-400">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Yêu Cầu Đổi / Trả Hàng Tại Trung Quốc</h3>
+                  <p className="text-[11px] text-slate-400">
+                    Hàng vẫn đang tại Kho Quảng Châu, hoàn trả miễn phí nội địa TQ!
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowQcRejectModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleRejectQc} className="space-y-4 text-xs">
+              <div className="p-3 rounded-2xl bg-red-950/30 border border-red-800/40 text-red-300 space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" />
+                  Quyền lợi kiểm hàng tại nguồn OmniOrder:
+                </p>
+                <p className="text-[11px] text-red-200/90 leading-relaxed">
+                  Vì hàng chưa vận chuyển qua Cửa Khẩu Hữu Nghị vào Việt Nam, bạn không phải trả cước quốc tế 2 chiều. Chuyên viên sẽ yêu cầu nhà cung cấp gửi lại hàng mới hoặc hoàn 100% tiền cọc!
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Lý do không duyệt & yêu cầu xử lý *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="VD: Sản phẩm bị trầy xước viền / sai màu / hộp móp méo nặng, tôi yêu cầu đổi sản phẩm khác..."
+                  value={qcRejectReason}
+                  onChange={(e) => setQcRejectReason(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed focus:outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowQcRejectModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  disabled={isQcActionLoading}
+                  className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-lg shadow-red-600/30"
+                >
+                  {isQcActionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <AlertTriangle className="w-4 h-4" />}
+                  <span>Xác Nhận Yêu Cầu Đổi Trả</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADMIN QUẢN LÝ ẢNH QC KHO QUẢNG CHÂU */}
+      {showAdminQcModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-xl bg-slate-900/95 rounded-3xl border border-blue-500/30 shadow-2xl p-6 space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Quản Lý Ảnh QC Kiểm Hàng (Admin Kho TQ)</h3>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Đơn: {selectedOrder?.orderCode} &bull; Kho Tổng Quảng Châu Hub
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdminQcModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAdminQc} className="space-y-4 text-xs">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-slate-300 font-semibold">
+                    Danh sách URL ảnh chụp thực tế (Mỗi dòng 1 URL) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleQuickQcSample}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 font-medium cursor-pointer underline flex items-center gap-1"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Nạp 3 ảnh mẫu HD
+                  </button>
+                </div>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="https://images.unsplash.com/...&#10;https://images.unsplash.com/..."
+                  value={adminQcPhotosInput}
+                  onChange={(e) => setAdminQcPhotosInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-mono text-[11px] leading-relaxed focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Ghi chú của kiểm định viên kho
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Mô tả tình trạng hàng: nguyên seal, đúng size, đầy đủ phụ kiện..."
+                  value={adminQcNoteInput}
+                  onChange={(e) => setAdminQcNoteInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">
+                  Trạng thái QC
+                </label>
+                <select
+                  value={adminQcStatusInput}
+                  onChange={(e) => setAdminQcStatusInput(e.target.value as QcStatus)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-blue-500"
+                >
+                  <option value="pending">Chờ khách kiểm tra & duyệt ảnh (pending)</option>
+                  <option value="approved">Khách đã duyệt - Sẵn sàng gửi về VN (approved)</option>
+                  <option value="rejected">Yêu cầu đổi trả tại Trung Quốc (rejected)</option>
+                  <option value="none">Chưa có ảnh (none)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminQcModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isQcActionLoading}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-600/30"
+                >
+                  {isQcActionLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Lưu Ảnh & Ghi Chú QC</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: VIETQR NAPAS 247 THANH TOÁN / ĐẶT CỌC */}
+      {selectedOrder && (
+        <VietQrDepositModal
+          order={selectedOrder}
+          isOpen={showVietQrModal}
+          onClose={() => setShowVietQrModal(false)}
+          onSuccess={(updatedOrder) => {
+            setSelectedOrder(updatedOrder)
+            setActionMessage('✓ Đã cập nhật trạng thái thanh toán đặt cọc 50% thành công qua VietQR!')
+            setTimeout(() => setActionMessage(null), 5000)
+            loadData(searchTerm)
+          }}
+        />
+      )}
+
+      {/* MODAL: MÁY TÍNH CƯỚC & CÂN NẶNG KIỆN HÀNG */}
+      {showCalculatorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-2xl animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-4xl my-auto animate-scale-up">
+            <ShippingCostCalculator onClose={() => setShowCalculatorModal(false)} />
           </div>
         </div>
       )}

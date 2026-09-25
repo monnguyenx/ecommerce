@@ -6,6 +6,7 @@ import { OrderTrackingView } from '../components/orders/OrderTrackingView'
 import { UserManagementView } from '../components/users/UserManagementView'
 import { AuthManagementView } from '../components/auth/AuthManagementView'
 import { SystemTopologyView } from '../components/system/SystemTopologyView'
+import { ShippingCostCalculator } from '../components/calculator/ShippingCostCalculator'
 
 interface DashboardPreviewProps {
   user: User
@@ -18,6 +19,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
   const screenTitle = {
     products: 'Quản lý Sản phẩm & Mặt hàng (product-service)',
     orders: 'Đơn hàng Order Trung Quốc & Vị trí Kiện hàng (order-service)',
+    calculator: 'Máy Tính Cước & Biểu Phí Vận Chuyển Xuyên Biên Giới (TQ ➔ VN)',
     users: 'Quản lý Người dùng & Hồ sơ (user-service)',
     auth: 'Xác thực & Phiên làm việc (auth-service)',
     topology: 'Sơ đồ Kiến trúc Toàn cụm Microservices'
@@ -65,6 +67,7 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
               />
             )}
             {activeScreen === 'orders' && <OrderTrackingView user={user} />}
+            {activeScreen === 'calculator' && <ShippingCostCalculator />}
             {activeScreen === 'users' && <UserManagementView user={user} />}
             {activeScreen === 'auth' && <AuthManagementView user={user} />}
             {activeScreen === 'topology' && <SystemTopologyView />}

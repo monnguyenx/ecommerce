@@ -30,6 +30,8 @@ export interface OrderTrackingEvent {
   isCurrent: boolean
 }
 
+export type QcStatus = 'none' | 'pending' | 'approved' | 'rejected'
+
 export interface Order {
   id: string
   orderCode: string
@@ -57,6 +59,10 @@ export interface Order {
   currentStatus: OrderStatus
   estimatedDeliveryDays: string
   estimatedDeliveryDate?: string
+  qcPhotos?: string[]
+  qcStatus?: QcStatus
+  qcNote?: string
+  qcInspectedAt?: string
   trackingEvents?: OrderTrackingEvent[]
   createdAt: string
   updatedAt: string

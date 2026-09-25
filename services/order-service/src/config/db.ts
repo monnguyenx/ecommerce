@@ -78,6 +78,28 @@ export const initOrderDatabase = async (): Promise<void> => {
       CREATE INDEX IF NOT EXISTS idx_tracking_step ON order_tracking_events(checkpoint_step);
     `)
 
+    // Migration: Bổ sung các cột QC Photos (Ảnh chụp thực tế kiểm hàng tại Kho Quảng Châu)
+    await client.query(`
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS qc_photos TEXT[] DEFAULT '{}';
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS qc_status VARCHAR(32) DEFAULT 'none';
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS qc_note TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS qc_inspected_at TIMESTAMP WITH TIME ZONE;
+    `)
+
+    // Khởi tạo ảnh QC mẫu cho đơn 1 (iPhone 16 Pro Max đang ở Kho Quảng Châu)
+    await client.query(`
+      UPDATE orders
+      SET qc_photos = ARRAY[
+        'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1200&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=1200&auto=format&fit=crop&q=80'
+      ],
+      qc_status = 'pending',
+      qc_note = 'Đã kiểm tra tại Kho Quảng Châu Hub: Nguyên seal hộp Apple, phụ kiện cáp USB-C đầy đủ, ngoại quan màu Titan Tự Nhiên không trầy xước.',
+      qc_inspected_at = CURRENT_TIMESTAMP
+      WHERE id = 'ord-2026-001' AND (qc_photos IS NULL OR array_length(qc_photos, 1) IS NULL);
+    `)
+
     // Kiểm tra và seed dữ liệu mẫu
     const checkRes = await client.query('SELECT COUNT(*) FROM orders;')
     const count = parseInt(checkRes.rows[0].count, 10)

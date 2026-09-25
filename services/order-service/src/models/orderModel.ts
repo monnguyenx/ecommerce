@@ -4,7 +4,8 @@ import {
   OrderTrackingEvent,
   CreateOrderPayload,
   CheckpointCode,
-  OrderStatus
+  OrderStatus,
+  QcStatus
 } from '../types/order.js'
 
 export class OrderModel {
@@ -68,6 +69,8 @@ export class OrderModel {
                o.vn_tracking_code as "vnTrackingCode", o.current_checkpoint as "currentCheckpoint",
                o.current_status as "currentStatus", o.estimated_delivery_days as "estimatedDeliveryDays",
                o.estimated_delivery_date as "estimatedDeliveryDate",
+               o.qc_photos as "qcPhotos", o.qc_status as "qcStatus",
+               o.qc_note as "qcNote", o.qc_inspected_at as "qcInspectedAt",
                o.created_at as "createdAt", o.updated_at as "updatedAt"
         FROM orders o
         ${whereClause}
@@ -108,6 +111,8 @@ export class OrderModel {
                 o.vn_tracking_code as "vnTrackingCode", o.current_checkpoint as "currentCheckpoint",
                 o.current_status as "currentStatus", o.estimated_delivery_days as "estimatedDeliveryDays",
                 o.estimated_delivery_date as "estimatedDeliveryDate",
+                o.qc_photos as "qcPhotos", o.qc_status as "qcStatus",
+                o.qc_note as "qcNote", o.qc_inspected_at as "qcInspectedAt",
                 o.created_at as "createdAt", o.updated_at as "updatedAt"
          FROM orders o WHERE o.id = $1`,
         [id]
@@ -434,6 +439,101 @@ export class OrderModel {
       return this.findById(orderId)
     } catch (error) {
       console.error('[order-service] OrderModel.updateOrder error:', error)
+      return null
+    }
+  }
+
+  // Cập nhật bộ ảnh chụp thực tế kiểm hàng QC tại Kho Quảng Châu (Admin / Inspector)
+  static async updateQcPhotos(
+    orderId: string,
+    payload: {
+      qcPhotos: string[]
+      qcNote?: string
+      qcStatus?: QcStatus
+    }
+  ): Promise<Order | null> {
+    try {
+      const existing = await this.findById(orderId)
+      if (!existing) return null
+
+      const qcPhotos = payload.qcPhotos ?? existing.qcPhotos ?? []
+      const qcNote = payload.qcNote !== undefined ? payload.qcNote : (existing.qcNote ?? '')
+      const qcStatus = payload.qcStatus || (existing.qcStatus === 'none' ? 'pending' : existing.qcStatus)
+      const qcInspectedAt = new Date().toISOString()
+
+      await pool.query(
+        `UPDATE orders
+         SET qc_photos = $1, qc_note = $2, qc_status = $3, qc_inspected_at = $4, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5`,
+        [qcPhotos, qcNote, qcStatus, qcInspectedAt, orderId]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.updateQcPhotos error:', error)
+      return null
+    }
+  }
+
+  // Khách hàng duyệt ảnh QC ("approved") hoặc yêu cầu đổi trả tại Trung Quốc ("rejected")
+  static async updateQcStatus(
+    orderId: string,
+    status: QcStatus,
+    note?: string
+  ): Promise<Order | null> {
+    try {
+      const existing = await this.findById(orderId)
+      if (!existing) return null
+
+      const qcNote = note !== undefined ? note : (existing.qcNote ?? '')
+
+      await pool.query(
+        `UPDATE orders
+         SET qc_status = $1, qc_note = $2, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3`,
+        [status, qcNote, orderId]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.updateQcStatus error:', error)
+      return null
+    }
+  }
+
+  // Xác nhận thanh toán đặt cọc 50% tự động qua VietQR Napas 247
+  static async confirmDeposit(orderId: string): Promise<Order | null> {
+    try {
+      const existing = await this.findById(orderId)
+      if (!existing) return null
+
+      // Cập nhật trạng thái đơn thành processing
+      await pool.query(
+        `UPDATE orders
+         SET current_status = 'processing', updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [orderId]
+      )
+
+      // Cập nhật event mốc 1: ORDER_DEPOSITED thành completed
+      await pool.query(
+        `UPDATE order_tracking_events
+         SET is_completed = true, is_current = false
+         WHERE order_id = $1 AND checkpoint_code = 'ORDER_DEPOSITED'`,
+        [orderId]
+      )
+
+      // Đặt mốc 2 SUPPLIER_DISPATCHED làm mốc hiện tại nếu có
+      await pool.query(
+        `UPDATE order_tracking_events
+         SET is_current = true
+         WHERE order_id = $1 AND checkpoint_code = 'SUPPLIER_DISPATCHED'`,
+        [orderId]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.confirmDeposit error:', error)
       return null
     }
   }

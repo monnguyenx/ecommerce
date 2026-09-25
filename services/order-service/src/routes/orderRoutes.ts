@@ -16,5 +16,8 @@ router.put('/orders/:id', OrderController.updateOrder)
 router.patch('/orders/:id/checkpoint', OrderController.updateCheckpoint)
 router.post('/orders/:id/events', OrderController.addEvent)
 router.put('/orders/:id/events/:eventId', OrderController.updateEvent)
+router.post('/orders/:id/qc-photos', OrderController.updateQcPhotos)
+router.patch('/orders/:id/qc-status', OrderController.updateQcStatus)
+router.post('/orders/:id/confirm-deposit', OrderController.confirmDeposit)
 
 export default router

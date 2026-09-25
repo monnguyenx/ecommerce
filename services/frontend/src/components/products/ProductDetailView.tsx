@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { productApi, type Product, type ProductItem } from '../../services/productApi'
 import { orderApi, type Order } from '../../services/orderApi'
+import { VietQrDepositModal } from '../orders/VietQrDepositModal'
 import type { User } from '../../types/auth'
 
 interface ProductDetailViewProps {
@@ -63,6 +64,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [customerAddress, setCustomerAddress] = useState<string>('Tòa FPT Tower, Số 10 Phạm Văn Bạch, Cầu Giấy, Hà Nội')
   const [isCreatingOrder, setIsCreatingOrder] = useState<boolean>(false)
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null)
+  const [showQrModal, setShowQrModal] = useState<boolean>(false)
   const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Code lookup test state
@@ -238,7 +240,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
       if (res.success && res.data) {
         setCreatedOrder(res.data)
-        showNotification('success', `Tạo đơn order thành công! Mã đơn: ${res.data.orderCode}`)
+        setShowOrderModal(false)
+        setShowQrModal(true)
+        showNotification('success', `Đã tạo đơn ${res.data.orderCode}! Vui lòng quét mã VietQR để cọc 50%.`)
       } else {
         showNotification('error', res.message || 'Lỗi khi tạo đơn hàng')
       }
@@ -1453,6 +1457,21 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* MODAL: VIETQR ĐẶT CỌC 50% TỰ ĐỘNG NAPAS 247 */}
+      {createdOrder && (
+        <VietQrDepositModal
+          order={createdOrder}
+          isOpen={showQrModal}
+          onClose={() => setShowQrModal(false)}
+          onSuccess={(updatedOrder) => {
+            setShowQrModal(false)
+            if (onGoToTracking) {
+              onGoToTracking(updatedOrder.id)
+            }
+          }}
+        />
       )}
     </div>
   )
