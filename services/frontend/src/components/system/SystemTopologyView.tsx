@@ -87,7 +87,7 @@ export const SystemTopologyView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -95,15 +95,15 @@ export const SystemTopologyView: React.FC = () => {
               ARCHITECTURE: Microservices Cluster
             </span>
           </div>
-          <h2 className="text-xl font-black text-white mt-1">Sơ đồ Kiến trúc & Trạng thái Nodes</h2>
-          <p className="text-xs text-slate-400">
-            Giám sát thời gian thực các Microservices đang chạy độc lập trên từng cổng cổng riêng biệt.
+          <h2 className="text-xl font-black text-white mt-1 font-heading">Sơ đồ Kiến trúc & Trạng thái Nodes</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Giám sát thời gian thực các Microservices đang chạy độc lập trên từng cổng riêng biệt.
           </p>
         </div>
 
         <button
           onClick={checkHealth}
-          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-2 border border-slate-700 cursor-pointer"
+          className="px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 rounded-2xl text-xs font-semibold flex items-center gap-2 border border-slate-700/80 cursor-pointer btn-press transition-all duration-200 shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
           <span>Kiểm tra lại sức khỏe</span>
@@ -115,12 +115,12 @@ export const SystemTopologyView: React.FC = () => {
         {nodes.map((node) => (
           <div
             key={node.name}
-            className="p-5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between"
+            className="p-5 sm:p-6 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-blue-400">
+                  <div className="p-2.5 rounded-2xl bg-slate-950 border border-slate-800 text-blue-400 shadow-inner">
                     <Server className="w-5 h-5" />
                   </div>
                   <div>

@@ -125,25 +125,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onSelectScreen(item.id)}
-                className={`w-full p-3 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer group ${
+                className={`w-full p-3 rounded-2xl flex items-center justify-between text-left transition-all duration-200 cursor-pointer group btn-press ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent hover:border-slate-800'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 font-semibold border border-blue-400/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900/90 border border-transparent hover:border-slate-800/80'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`p-1.5 rounded-lg transition-colors ${
-                      isActive ? 'bg-white/15 text-white' : 'text-slate-400 group-hover:text-blue-400'
+                    className={`p-2 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? 'bg-white/20 text-white shadow-inner'
+                        : 'bg-slate-900/80 text-slate-400 group-hover:text-blue-400 group-hover:scale-110 group-hover:bg-blue-500/10'
                     }`}
                   >
                     {item.icon}
                   </div>
                   <div>
-                    <p className="text-xs font-bold leading-none">{item.label}</p>
+                    <p className="text-xs font-bold leading-tight">{item.label}</p>
                     <p
-                      className={`text-[10px] mt-1 font-mono ${
-                        isActive ? 'text-blue-200' : 'text-slate-500 group-hover:text-slate-400'
+                      className={`text-[10px] mt-1 font-mono transition-colors ${
+                        isActive ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-400'
                       }`}
                     >
                       {item.sublabel}
@@ -153,17 +155,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-md ${
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded-lg transition-all ${
                       isActive
-                        ? 'bg-white/20 text-white'
+                        ? 'bg-white/20 text-white border border-white/20'
                         : 'bg-slate-900 text-slate-400 group-hover:text-slate-300 border border-slate-800'
                     }`}
                   >
                     {item.port}
                   </span>
                   <ChevronRight
-                    className={`w-3.5 h-3.5 transition-transform ${
-                      isActive ? 'translate-x-0.5 text-white' : 'text-slate-600 group-hover:text-slate-400'
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isActive ? 'translate-x-0.5 text-white' : 'text-slate-600 group-hover:translate-x-1 group-hover:text-slate-300'
                     }`}
                   />
                 </div>
@@ -174,23 +176,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* User Card & Logout at Bottom */}
-      <div className="pt-4 border-t border-slate-800 space-y-3">
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+      <div className="pt-4 border-t border-slate-800/80 space-y-3">
+        <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between hover:border-slate-700/80 transition-all duration-200 shadow-sm">
           <div className="flex items-center gap-2.5 overflow-hidden">
             {user.avatar ? (
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="w-9 h-9 rounded-full object-cover border border-slate-700 flex-shrink-0"
+                className="w-9 h-9 rounded-full object-cover border border-slate-700 ring-2 ring-blue-500/20 flex-shrink-0"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-300 text-xs flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-slate-300 text-xs flex-shrink-0 ring-2 ring-blue-500/20">
                 {user.name.slice(0, 2).toUpperCase()}
               </div>
             )}
             <div className="overflow-hidden">
               <p className="text-xs font-bold text-white truncate">{user.name}</p>
-              <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.2 rounded border ${roleBadge.bg}`}>
+              <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md border mt-0.5 ${roleBadge.bg}`}>
                 {roleBadge.label}
               </span>
             </div>
@@ -198,7 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onLogout}
-            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 rounded-xl transition-all duration-200 cursor-pointer flex-shrink-0 active:scale-95"
             title="Đăng xuất khỏi hệ thống"
           >
             <LogOut className="w-4 h-4" />

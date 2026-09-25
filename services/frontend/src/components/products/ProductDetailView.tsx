@@ -283,15 +283,15 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const totalStockAllItems = product.items.reduce((s, i) => s + i.stockQuantity, 0)
 
   return (
-    <div className="space-y-6 pb-16 animate-fadeIn">
+    <div className="space-y-6 pb-16 animate-fade-in-up">
       {/* 1. TOP NAVIGATION & BREADCRUMB BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900/90 border border-slate-800 backdrop-blur-md shadow-sm">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-2 text-xs font-semibold border border-slate-700 cursor-pointer shadow-sm group"
+            className="p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all duration-200 flex items-center gap-2 text-xs font-semibold border border-slate-700 cursor-pointer shadow-sm group btn-press"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
             <span>Quay lại danh sách</span>
           </button>
 
@@ -592,14 +592,14 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   <div
                     key={item.id}
                     onClick={() => setSelectedItem(item)}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-2 relative overflow-hidden ${
+                    className={`p-4 rounded-3xl border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2 relative overflow-hidden btn-press ${
                       isSelected
-                        ? 'bg-blue-950/40 border-blue-500 ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/10'
+                        ? 'bg-blue-950/40 border-blue-500 ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/15'
                         : 'bg-slate-950 border-slate-800 hover:border-slate-700 hover:bg-slate-950/80'
                     }`}
                   >
                     {isSelected && (
-                      <div className="absolute top-0 right-0 w-8 h-8 bg-blue-600 rounded-bl-xl flex items-center justify-center text-white">
+                      <div className="absolute top-0 right-0 w-8 h-8 bg-blue-600 rounded-bl-2xl flex items-center justify-center text-white shadow-sm">
                         <CheckCircle2 className="w-4 h-4" />
                       </div>
                     )}
@@ -788,7 +788,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   )
                 }}
                 disabled={currentStock <= 0}
-                className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all cursor-pointer"
+                className="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-750 disabled:opacity-40 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 border border-slate-700 transition-all cursor-pointer btn-press"
               >
                 <ShoppingBag className="w-4 h-4 text-blue-400" />
                 <span>Thêm vào Giỏ hàng</span>
@@ -798,7 +798,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 type="button"
                 onClick={() => setShowOrderModal(true)}
                 disabled={currentStock <= 0}
-                className="py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
+                className="py-3 px-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all cursor-pointer btn-press"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Đặt hàng ngay (Tạo Order)</span>
@@ -814,7 +814,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         <div className="flex items-center gap-2 p-3 bg-slate-950/60 border-b border-slate-800 overflow-x-auto">
           <button
             onClick={() => setActiveTab('items')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap btn-press ${
               activeTab === 'items'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -826,7 +826,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
           <button
             onClick={() => setActiveTab('specs')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap btn-press ${
               activeTab === 'specs'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -838,7 +838,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
           <button
             onClick={() => setActiveTab('codes')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap btn-press ${
               activeTab === 'codes'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -850,7 +850,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
           <button
             onClick={() => setActiveTab('database')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all duration-200 cursor-pointer whitespace-nowrap btn-press ${
               activeTab === 'database'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -1162,8 +1162,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
       {/* MODAL: CHỈNH SỬA SẢN PHẨM (Dành cho Admin/Manager) */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-xl bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-xl bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-up">
             <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-blue-400" />
@@ -1273,8 +1273,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
       {/* MODAL: MOCK TẠO ĐƠN HÀNG (ORDER SERVICE CONFIRMATION) */}
       {showOrderModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-5 animate-scale-up">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">

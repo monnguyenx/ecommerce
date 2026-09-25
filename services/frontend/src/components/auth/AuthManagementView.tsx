@@ -49,7 +49,7 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
   return (
     <div className="space-y-6">
       {/* Top Banner with Backend Service Info */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -57,8 +57,8 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
               SERVICE: auth-service (Port :8001)
             </span>
           </div>
-          <h2 className="text-xl font-black text-white mt-1">Xác thực & Bảo mật (JWT & RBAC)</h2>
-          <p className="text-xs text-slate-400">
+          <h2 className="text-xl font-black text-white mt-1 font-heading">Xác thực & Bảo mật (JWT & RBAC)</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
             Nghiệp vụ cấp phát token phiên làm việc, mã hóa mật khẩu Bcrypt, phân quyền vai trò và API verify token cho các microservice khác.
           </p>
         </div>
@@ -66,7 +66,7 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
         <button
           onClick={testVerifyToken}
           disabled={isVerifying}
-          className="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 shadow-md shadow-purple-500/20 cursor-pointer disabled:opacity-50"
+          className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-purple-500/25 cursor-pointer disabled:opacity-50 btn-press transition-all duration-200"
         >
           <Activity className={`w-4 h-4 ${isVerifying ? 'animate-spin' : ''}`} />
           <span>Kiểm tra Token trực tiếp (:8001)</span>
@@ -74,7 +74,7 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
       </div>
 
       {verifyStatus && (
-        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-2">
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{verifyStatus}</span>
         </div>
@@ -83,15 +83,15 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
       {/* Token Details & Claims */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Token Card */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+        <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2 font-heading">
               <Key className="w-4 h-4 text-purple-400" />
               <span>JWT Bearer Token hiện tại</span>
             </h3>
             <button
               onClick={copyToken}
-              className="text-[11px] font-mono px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg flex items-center gap-1 border border-slate-700 cursor-pointer"
+              className="text-[11px] font-mono px-3 py-1 bg-slate-800/90 hover:bg-slate-750 text-slate-300 rounded-xl flex items-center gap-1.5 border border-slate-700 cursor-pointer btn-press transition-all"
             >
               {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? 'Đã sao chép' : 'Sao chép'}</span>

@@ -45,7 +45,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <button
               type="button"
               onClick={() => setMode('login')}
-              className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
                 mode === 'login'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
@@ -56,7 +56,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <button
               type="button"
               onClick={() => setMode('register')}
-              className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
                 mode === 'register'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-slate-200'
@@ -74,8 +74,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           </div>
         </div>
 
-        {/* Khối Form chính giữa */}
-        <div className="my-auto py-4">
+        {/* Khối Form chính giữa với transition */}
+        <div className="my-auto py-4 animate-fade-in-up" key={mode}>
           {mode === 'login' ? (
             <LoginForm
               onSuccess={onLoginSuccess}
@@ -100,8 +100,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
       {/* Modal Quên mật khẩu */}
       {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 p-6 sm:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-md bg-slate-900/95 rounded-3xl shadow-2xl border border-slate-800 p-6 sm:p-8 animate-scale-up">
             {!forgotSubmitted ? (
               <>
                 <div className="flex items-center gap-3 mb-3">

@@ -207,13 +207,13 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
 
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* Mode Switcher */}
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex bg-slate-950/90 p-1 rounded-2xl border border-slate-800 shadow-inner">
             <button
               onClick={() => setDisplayMode('grid')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer btn-press ${
                 displayMode === 'grid'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -221,10 +221,10 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
             </button>
             <button
               onClick={() => setDisplayMode('carousel')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all duration-200 cursor-pointer btn-press ${
                 displayMode === 'carousel'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-900/60'
               }`}
             >
               <Film className="w-3.5 h-3.5" />
@@ -235,7 +235,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
           <button
             onClick={() => loadData()}
             disabled={isLoading}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700 transition-colors cursor-pointer"
+            className="p-2.5 bg-slate-900/90 hover:bg-slate-850 text-slate-300 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all duration-200 cursor-pointer btn-press active:rotate-180"
             title="Tải lại danh sách"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-400' : ''}`} />
@@ -244,7 +244,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
           {canManage && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-blue-500/25 cursor-pointer transition-all"
+              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-blue-500/25 cursor-pointer transition-all duration-200 btn-press"
             >
               <Plus className="w-4 h-4" />
               <span>Thêm sản phẩm</span>
@@ -254,7 +254,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
       </div>
 
       {actionMessage && (
-        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4" />
           <span>{actionMessage}</span>
         </div>
@@ -262,34 +262,34 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs font-medium">Tổng sản phẩm</span>
             <Package className="w-4 h-4 text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.totalProducts ?? products.length}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.totalProducts ?? products.length}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Sản phẩm gốc trong catalog</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs font-medium">Mặt hàng (Items/SKU)</span>
             <Boxes className="w-4 h-4 text-purple-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.totalItems ?? 14}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.totalItems ?? 14}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Biến thể màu / dung lượng / size</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs font-medium">Tổng tồn kho</span>
             <Tag className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.totalStockQuantity ?? 395} chiếc</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.totalStockQuantity ?? 395} chiếc</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Sẵn sàng xuất đơn</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs font-medium">Giá trị tồn kho</span>
             <DollarSign className="w-4 h-4 text-amber-400" />
@@ -317,14 +317,14 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
           <div className="flex items-center gap-2">
             <button
               onClick={() => scrollSlider('left')}
-              className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors"
+              className="p-2.5 rounded-2xl bg-slate-950/90 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all duration-200 btn-press"
               title="Slide trước"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => scrollSlider('right')}
-              className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors"
+              className="p-2.5 rounded-2xl bg-slate-950/90 hover:bg-slate-800 text-slate-300 border border-slate-800 hover:border-slate-700 cursor-pointer transition-all duration-200 btn-press"
               title="Slide sau"
             >
               <ChevronRight className="w-4 h-4" />
@@ -347,7 +347,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
             return (
               <div
                 key={`slide-${p.id}`}
-                className="w-72 sm:w-80 flex-shrink-0 snap-start rounded-2xl bg-slate-950 border border-slate-800 hover:border-blue-500/50 transition-all duration-300 overflow-hidden flex flex-col group shadow-lg"
+                className="w-72 sm:w-80 flex-shrink-0 snap-start rounded-3xl bg-slate-950 border border-slate-800/90 hover:border-blue-500/50 card-interactive overflow-hidden flex flex-col group shadow-xl"
               >
                 {/* Square Image Box */}
                 <div
@@ -364,7 +364,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
 
                   {/* Badges on Square Image */}
                   <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-blue-300 border border-slate-700/80">
+                    <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-slate-950/80 backdrop-blur-md text-blue-300 border border-slate-700/80 shadow-sm">
                       {p.brand}
                     </span>
                     <span className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-indigo-950/90 text-indigo-300 border border-indigo-700/60 shadow-sm">
@@ -582,7 +582,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
               return (
                 <div
                   key={`grid-${p.id}`}
-                  className="rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group"
+                  className="rounded-3xl bg-slate-900/90 border border-slate-800/80 card-interactive overflow-hidden flex flex-col group shadow-xl"
                 >
                   {/* Big Square Image Container */}
                   <div
@@ -592,7 +592,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                     <img
                       src={p.thumbnail}
                       alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-50" />
@@ -712,10 +712,10 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                                 onClick={() =>
                                   setSelectedVariants((prev) => ({ ...prev, [p.id]: item }))
                                 }
-                                className={`px-2 py-0.5 rounded-md text-[10px] font-mono transition-all cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono transition-all duration-150 cursor-pointer btn-press ${
                                   isSelected
-                                    ? 'bg-blue-600 text-white font-bold ring-1 ring-blue-400'
-                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                    ? 'bg-blue-600 text-white font-bold ring-2 ring-blue-400/50 shadow-md shadow-blue-500/20'
+                                    : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
                                 }`}
                                 title={`${item.title} - ${item.price.toLocaleString('vi-VN')} đ (Kho: ${item.stockQuantity})`}
                               >
@@ -728,10 +728,10 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                     )}
 
                     {/* Footer Actions */}
-                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
+                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
                       <button
                         onClick={() => setSelectedProductId(p.id)}
-                        className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 cursor-pointer btn-press group-hover:translate-x-0.5 transition-all"
                       >
                         <SlidersHorizontal className="w-3.5 h-3.5" />
                         <span>Chi tiết & Mặt hàng ({p.items.length})</span>
@@ -740,7 +740,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                       {canManage && (
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="p-1 text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                          className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer btn-press"
                           title="Xóa sản phẩm"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -753,19 +753,17 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
             })}
           </div>
         ) : (
-          <div className="p-12 text-center rounded-3xl bg-slate-900 border border-slate-800 text-slate-400 text-sm">
+          <div className="p-12 text-center rounded-3xl bg-slate-900/80 border border-slate-800 text-slate-400 text-sm">
             {isLoading ? 'Đang kết nối tải sản phẩm từ product-service...' : 'Không tìm thấy sản phẩm nào phù hợp.'}
           </div>
         )}
       </div>
 
-
-
       {/* MODAL 2: THÊM SẢN PHẨM MỚI KÈM MẶT HÀNG ITEMS */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-white mb-1">Thêm sản phẩm mới vào Catalog</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-lg bg-slate-900/95 rounded-3xl border border-slate-800 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-scale-up">
+            <h3 className="text-lg font-bold text-white mb-1 font-heading">Thêm sản phẩm mới vào Catalog</h3>
             <p className="text-xs text-slate-400 mb-5">
               Dữ liệu sẽ được lưu trực tiếp vào backend <span className="font-mono text-blue-400">product-service:8003</span>
             </p>
@@ -897,14 +895,14 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold rounded-xl cursor-pointer"
+                  className="w-1/2 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold rounded-2xl cursor-pointer btn-press"
                 >
                   Hủy bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-1/2 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50"
+                  className="w-1/2 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-2xl shadow-md shadow-blue-500/20 cursor-pointer disabled:opacity-50 btn-press"
                 >
                   {isSubmitting ? 'Đang gửi...' : 'Lưu sản phẩm'}
                 </button>

@@ -348,7 +348,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
       {/* 2. STATS ROW */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400">Tổng đơn Order</p>
             <p className="text-2xl font-black text-white mt-1 font-mono">
@@ -356,12 +356,12 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             </p>
             <span className="text-[11px] text-blue-400 font-mono">Đang phục vụ</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Package className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400">Đang ở Trung Quốc</p>
             <p className="text-2xl font-black text-amber-400 mt-1 font-mono">
@@ -369,12 +369,12 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             </p>
             <span className="text-[11px] text-slate-400">Shop / Kho Quảng Châu</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <Building2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400">Thông quan Cửa khẩu</p>
             <p className="text-2xl font-black text-indigo-400 mt-1 font-mono">
@@ -382,12 +382,12 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             </p>
             <span className="text-[11px] text-slate-400">Hữu Nghị - Lạng Sơn</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
             <FileCheck2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive flex items-center justify-between">
           <div>
             <p className="text-xs text-slate-400">Đã về Kho VN & Giao</p>
             <p className="text-2xl font-black text-emerald-400 mt-1 font-mono">
@@ -395,14 +395,14 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             </p>
             <span className="text-[11px] text-slate-400">Kho SOC & Chặng cuối</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
             <Truck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 3. SEARCH & LOOKUP BAR */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-4">
+      <div className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-sm">
         <form onSubmit={handleSearch} className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-blue-400" />
           <input
@@ -410,39 +410,39 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Nhập Mã Đơn (ORD-CN-...), Mã vận đơn SF Express, Bưu chính VN, hoặc tên khách hàng..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
+            className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-mono"
           />
         </form>
 
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setStatusFilter('')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === '' ? 'bg-blue-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
+              statusFilter === '' ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20' : 'bg-slate-950 text-slate-400 hover:text-white'
             }`}
           >
             Tất cả ({stats?.totalOrders || orders.length})
           </button>
           <button
             onClick={() => setStatusFilter('in_transit_cn')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'in_transit_cn' ? 'bg-amber-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
+              statusFilter === 'in_transit_cn' ? 'bg-amber-600 text-white shadow-md shadow-amber-500/20' : 'bg-slate-950 text-slate-400 hover:text-white'
             }`}
           >
             Tại Trung Quốc
           </button>
           <button
             onClick={() => setStatusFilter('customs')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'customs' ? 'bg-indigo-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
+              statusFilter === 'customs' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'bg-slate-950 text-slate-400 hover:text-white'
             }`}
           >
             Thông quan
           </button>
           <button
             onClick={() => setStatusFilter('in_transit_vn')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'in_transit_vn' ? 'bg-emerald-600 text-white' : 'bg-slate-950 text-slate-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer btn-press ${
+              statusFilter === 'in_transit_vn' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' : 'bg-slate-950 text-slate-400 hover:text-white'
             }`}
           >
             Về Việt Nam
@@ -804,7 +804,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
                   return (
                     <div key={ev.id || index} className="relative group">
-                      {/* Checkpoint Dot */}
+                      {/* Checkpoint Dot with animated radar ping */}
                       <div
                         className={`absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full flex items-center justify-center font-mono text-[10px] font-bold transition-all ${
                           isCurrent
@@ -814,16 +814,19 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                             : 'bg-slate-800 text-slate-500 border border-slate-700'
                         }`}
                       >
+                        {isCurrent && (
+                          <span className="absolute -inset-1 rounded-full bg-blue-500 animate-radar pointer-events-none -z-10" />
+                        )}
                         {isPast ? <CheckCircle2 className="w-3.5 h-3.5" /> : ev.checkpointStep}
                       </div>
 
                       {/* Checkpoint Card */}
                       <div
-                        className={`p-4 rounded-2xl border transition-all ${
+                        className={`p-4 rounded-3xl border transition-all duration-300 card-interactive ${
                           isCurrent
-                            ? 'bg-blue-950/40 border-blue-500 ring-1 ring-blue-500/40 shadow-xl shadow-blue-500/5'
+                            ? 'bg-blue-950/40 border-blue-500 ring-1 ring-blue-500/40 shadow-xl shadow-blue-500/10'
                             : isPast
-                            ? 'bg-slate-950/70 border-slate-800/90'
+                            ? 'bg-slate-950/70 border-slate-800/90 hover:border-slate-700'
                             : 'bg-slate-950/30 border-slate-900 opacity-60'
                         }`}
                       >
@@ -984,8 +987,8 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
       {/* MODAL 1: CHỈNH SỬA CHI TIẾT 1 MỐC SỰ KIỆN TRONG TIMELINE */}
       {editingEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-lg bg-slate-900/95 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4 animate-scale-up">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
@@ -1064,8 +1067,8 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
       {/* MODAL 2: THÊM MỐC LỘ TRÌNH PHÁT SINH */}
       {showAddEventModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="w-full max-w-lg bg-slate-900/95 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4 animate-scale-up">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400">

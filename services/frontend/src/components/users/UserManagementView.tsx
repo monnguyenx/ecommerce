@@ -68,7 +68,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
   return (
     <div className="space-y-6">
       {/* Top Banner with Backend Service Info */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -76,8 +76,8 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
               SERVICE: user-service (Port :8002)
             </span>
           </div>
-          <h2 className="text-xl font-black text-white mt-1">Quản lý Người dùng & Hồ sơ tài khoản</h2>
-          <p className="text-xs text-slate-400">
+          <h2 className="text-xl font-black text-white mt-1 font-heading">Quản lý Người dùng & Hồ sơ tài khoản</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
             Nghiệp vụ lưu trữ thông tin khách hàng, phân quyền vai trò (RBAC), lịch sử chi tiêu và địa chỉ nhận hàng.
           </p>
         </div>
@@ -85,7 +85,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
         <button
           onClick={loadData}
           disabled={isLoading}
-          className="p-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-700 transition-colors cursor-pointer"
+          className="p-2.5 bg-slate-900/90 hover:bg-slate-800 text-slate-300 rounded-2xl border border-slate-700/80 transition-all duration-200 cursor-pointer btn-press active:rotate-180"
           title="Tải lại danh sách"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-emerald-400' : ''}`} />
@@ -93,7 +93,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
       </div>
 
       {actionNotice && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-semibold flex items-center gap-2">
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4" />
           <span>{actionNotice}</span>
         </div>
@@ -101,39 +101,39 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
 
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs">Tổng người dùng</span>
             <Users className="w-4 h-4 text-emerald-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.totalUsers ?? users.length}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.totalUsers ?? users.length}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Tất cả tài khoản trong hệ thống</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs">Khách mua hàng</span>
             <UserCheck className="w-4 h-4 text-blue-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.byRole?.customer ?? 3}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.byRole?.customer ?? 3}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Khách hàng đặt hàng</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs">Quản lý & Nhân viên</span>
             <Briefcase className="w-4 h-4 text-purple-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.byRole?.manager ?? 1}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.byRole?.manager ?? 1}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Điều phối đơn hàng</p>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <div className="p-4 rounded-3xl bg-slate-900/80 border border-slate-800/80 card-interactive">
           <div className="flex items-center justify-between text-slate-400 mb-1">
             <span className="text-xs">Quản trị viên (Admin)</span>
             <Shield className="w-4 h-4 text-amber-400" />
           </div>
-          <p className="text-2xl font-bold text-white">{stats?.byRole?.admin ?? 1}</p>
+          <p className="text-2xl font-bold text-white font-heading">{stats?.byRole?.admin ?? 1}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">Quyền cấu hình hệ thống</p>
         </div>
       </div>
