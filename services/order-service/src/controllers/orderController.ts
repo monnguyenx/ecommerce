@@ -151,7 +151,7 @@ export class OrderController {
   static async updateCheckpoint(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params
-      const { checkpointStep, note } = req.body
+      const { checkpointStep, location, description, title, note } = req.body
 
       if (!checkpointStep || typeof checkpointStep !== 'number') {
         res.status(400).json({
@@ -161,7 +161,13 @@ export class OrderController {
         return
       }
 
-      const updated = await OrderModel.updateCheckpoint(id, checkpointStep, note)
+      const updated = await OrderModel.updateCheckpoint(id, checkpointStep, {
+        location,
+        description,
+        title,
+        note
+      })
+
       if (!updated) {
         res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
         return
@@ -169,12 +175,98 @@ export class OrderController {
 
       res.status(200).json({
         success: true,
-        message: `Đã cập nhật tiến trình đơn hàng sang bước [${checkpointStep}]`,
+        message: `Đã cập nhật tiến trình đơn hàng sang bước [${checkpointStep}] thành công!`,
         data: updated
       })
     } catch (error) {
       console.error('[order-service] updateCheckpoint error:', error)
       res.status(500).json({ success: false, message: 'Lỗi cập nhật tiến trình đơn hàng' })
+    }
+  }
+
+  // PUT /api/v1/orders/:id (Cập nhật thông tin đơn hàng / mã vận đơn dành cho Admin)
+  static async updateOrder(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      const updates = req.body
+
+      const updated = await OrderModel.updateOrder(id, updates)
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Đã cập nhật thông tin đơn hàng và mã vận đơn thành công!',
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] updateOrder error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi cập nhật thông tin đơn hàng' })
+    }
+  }
+
+  // PUT /api/v1/orders/:id/events/:eventId (Cập nhật 1 mốc sự kiện cụ thể trong timeline)
+  static async updateEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, eventId } = req.params
+      const updates = req.body
+
+      const updated = await OrderModel.updateEvent(id, eventId, updates)
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện tracking cần cập nhật' })
+        return
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Đã cập nhật mốc tracking thành công!',
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] updateEvent error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi cập nhật mốc tracking' })
+    }
+  }
+
+  // POST /api/v1/orders/:id/events (Thêm mốc sự kiện mới vào lộ trình)
+  static async addEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params
+      const { title, location, description, checkpointStep, checkpointCode, isCompleted, isCurrent } = req.body
+
+      if (!title || !location || !description) {
+        res.status(400).json({
+          success: false,
+          message: 'Vui lòng điền tiêu đề mốc, vị trí và mô tả chi tiết'
+        })
+        return
+      }
+
+      const updated = await OrderModel.addEvent(id, {
+        title,
+        location,
+        description,
+        checkpointStep,
+        checkpointCode,
+        isCompleted,
+        isCurrent
+      })
+
+      if (!updated) {
+        res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
+        return
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Đã thêm mốc lộ trình mới cho kiện hàng!',
+        data: updated
+      })
+    } catch (error) {
+      console.error('[order-service] addEvent error:', error)
+      res.status(500).json({ success: false, message: 'Lỗi thêm mốc tracking' })
     }
   }
 }

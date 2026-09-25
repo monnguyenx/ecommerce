@@ -14,9 +14,19 @@ import {
   FileCheck2,
   Phone,
   UserCheck,
-  Sparkles
+  Edit3,
+  Plus,
+  Save,
+  ShieldCheck
 } from 'lucide-react'
-import { orderApi, type Order, type OrderStats, type CheckpointCode } from '../../services/orderApi'
+import {
+  orderApi,
+  type Order,
+  type OrderStats,
+  type CheckpointCode,
+  type OrderTrackingEvent,
+  type OrderStatus
+} from '../../services/orderApi'
 import type { User } from '../../types/auth'
 
 interface OrderTrackingViewProps {
@@ -24,15 +34,60 @@ interface OrderTrackingViewProps {
   initialOrderId?: string
 }
 
-export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _user, initialOrderId }) => {
+export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, initialOrderId }) => {
   const [orders, setProductsOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<OrderStats | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isUpdatingCheckpoint, setIsUpdatingCheckpoint] = useState(false)
   const [actionMessage, setActionMessage] = useState<string | null>(null)
+
+  const canManage = user.role === 'admin' || user.role === 'manager'
+
+  // Admin Editing Form State
+  const [adminStep, setAdminStep] = useState<number>(1)
+  const [adminLocation, setAdminLocation] = useState<string>('')
+  const [adminDescription, setAdminDescription] = useState<string>('')
+  const [adminCnTracking, setAdminCnTracking] = useState<string>('')
+  const [adminVnTracking, setAdminVnTracking] = useState<string>('')
+  const [adminEstimatedDays, setAdminEstimatedDays] = useState<string>('')
+  const [adminStatus, setAdminStatus] = useState<OrderStatus>('processing')
+  const [isSavingAdmin, setIsSavingAdmin] = useState<boolean>(false)
+
+  // Edit Single Event Modal State
+  const [editingEvent, setEditingEvent] = useState<OrderTrackingEvent | null>(null)
+  const [eventEditTitle, setEventEditTitle] = useState('')
+  const [eventEditLocation, setEventEditLocation] = useState('')
+  const [eventEditDesc, setEventEditDesc] = useState('')
+  const [isSavingEvent, setIsSavingEvent] = useState(false)
+
+  // Add Custom Event Modal State
+  const [showAddEventModal, setShowAddEventModal] = useState(false)
+  const [newEventTitle, setNewEventTitle] = useState('')
+  const [newEventLocation, setNewEventLocation] = useState('')
+  const [newEventDesc, setNewEventDesc] = useState('')
+  const [isAddingEvent, setIsAddingEvent] = useState(false)
+
+  const getCheckpointStepNumber = (code?: CheckpointCode): number => {
+    switch (code) {
+      case 'ORDER_DEPOSITED':
+        return 1
+      case 'SUPPLIER_DISPATCHED':
+        return 2
+      case 'CN_WAREHOUSE_RECEIVED':
+        return 3
+      case 'CUSTOMS_CLEARING':
+        return 4
+      case 'VN_WAREHOUSE_SORTING':
+        return 5
+      case 'LOCAL_DELIVERING':
+      case 'DELIVERED_SUCCESS':
+        return 6
+      default:
+        return 1
+    }
+  }
 
   const loadData = async (queryTerm = searchTerm) => {
     setIsLoading(true)
@@ -43,7 +98,6 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
     setProductsOrders(orderList)
     setStats(statsRes)
 
-    // Nếu có initialOrderId hoặc chưa chọn order nào, chọn cái đầu tiên
     if (orderList.length > 0) {
       if (initialOrderId) {
         const found = orderList.find((o) => o.id === initialOrderId || o.orderCode === initialOrderId)
@@ -66,6 +120,25 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
     loadData()
   }, [statusFilter])
 
+  // Sync form inputs whenever selectedOrder updates
+  useEffect(() => {
+    if (selectedOrder) {
+      const step = getCheckpointStepNumber(selectedOrder.currentCheckpoint)
+      setAdminStep(step)
+      const currentEv =
+        selectedOrder.trackingEvents?.find((e) => e.isCurrent) ||
+        selectedOrder.trackingEvents?.[step - 1] ||
+        selectedOrder.trackingEvents?.[0]
+
+      setAdminLocation(currentEv?.location || '')
+      setAdminDescription(currentEv?.description || '')
+      setAdminCnTracking(selectedOrder.cnTrackingCode || '')
+      setAdminVnTracking(selectedOrder.vnTrackingCode || '')
+      setAdminEstimatedDays(selectedOrder.estimatedDeliveryDays || '7 - 14 ngày')
+      setAdminStatus(selectedOrder.currentStatus)
+    }
+  }, [selectedOrder?.id, selectedOrder?.currentCheckpoint])
+
   const handleSelectOrder = async (orderId: string) => {
     setIsLoading(true)
     const detail = await orderApi.getOrderById(orderId)
@@ -80,7 +153,6 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
       return
     }
     setIsLoading(true)
-    // Thử lookup trực tiếp
     const directMatch = await orderApi.lookupByCode(searchTerm.trim())
     if (directMatch) {
       setSelectedOrder(directMatch)
@@ -92,37 +164,118 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
     setIsLoading(false)
   }
 
-  // Mô phỏng cập nhật trạm checkpoint của kiện hàng
-  const handleSimulateCheckpoint = async (step: number) => {
-    if (!selectedOrder) return
-    setIsUpdatingCheckpoint(true)
-    const res = await orderApi.updateCheckpoint(selectedOrder.id, step)
-    if (res.success && res.data) {
-      setSelectedOrder(res.data)
-      setActionMessage(res.message)
-      setTimeout(() => setActionMessage(null), 4000)
-      loadData(searchTerm)
+  // Admin selects a checkpoint step to inspect/modify
+  const handleSelectAdminStep = (step: number) => {
+    setAdminStep(step)
+    const ev = selectedOrder?.trackingEvents?.find((e) => e.checkpointStep === step)
+    if (ev) {
+      setAdminLocation(ev.location)
+      setAdminDescription(ev.description)
+    } else {
+      const defaultLocations: Record<number, string> = {
+        1: 'Cổng thanh toán OmniOrder - Hà Nội',
+        2: 'Thâm Quyến, Quảng Đông, Trung Quốc',
+        3: 'Kho Tổng Quảng Châu Hub (Quảng Đông, TQ)',
+        4: 'Cửa khẩu Quốc tế Hữu Nghị (Lạng Sơn)',
+        5: 'Kho Trung tâm Hà Nội SOC (Mê Linh, Hà Nội)',
+        6: selectedOrder?.customerAddress || 'Địa chỉ người nhận'
+      }
+      setAdminLocation(defaultLocations[step] || '')
     }
-    setIsUpdatingCheckpoint(false)
   }
 
-  const getCheckpointStepNumber = (code?: CheckpointCode): number => {
-    switch (code) {
-      case 'ORDER_DEPOSITED':
-        return 1
-      case 'SUPPLIER_DISPATCHED':
-        return 2
-      case 'CN_WAREHOUSE_RECEIVED':
-        return 3
-      case 'CUSTOMS_CLEARING':
-        return 4
-      case 'VN_WAREHOUSE_SORTING':
-        return 5
-      case 'LOCAL_DELIVERING':
-      case 'DELIVERED_SUCCESS':
-        return 6
-      default:
-        return 1
+  // Quick chips for filling location
+  const handleQuickLocation = (loc: string) => {
+    setAdminLocation(loc)
+  }
+
+  // Admin saves checkpoint and order details
+  const handleSaveAdminTracking = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedOrder) return
+    setIsSavingAdmin(true)
+    try {
+      // 1. Cập nhật checkpoint & ghi chú vị trí
+      await orderApi.updateCheckpoint(selectedOrder.id, adminStep, {
+        location: adminLocation,
+        description: adminDescription
+      })
+
+      // 2. Cập nhật mã vận đơn và trạng thái
+      const ordRes = await orderApi.updateOrder(selectedOrder.id, {
+        cnTrackingCode: adminCnTracking,
+        vnTrackingCode: adminVnTracking,
+        estimatedDeliveryDays: adminEstimatedDays,
+        currentStatus: adminStatus
+      })
+
+      if (ordRes.success && ordRes.data) {
+        setSelectedOrder(ordRes.data)
+        setActionMessage('✓ Đã cập nhật vị trí kiện hàng và thông tin vận đơn cho khách hàng thành công!')
+        setTimeout(() => setActionMessage(null), 4000)
+        loadData(searchTerm)
+      } else {
+        const detail = await orderApi.getOrderById(selectedOrder.id)
+        if (detail) setSelectedOrder(detail)
+        setActionMessage('✓ Đã cập nhật trạm vị trí thành công!')
+        setTimeout(() => setActionMessage(null), 4000)
+        loadData(searchTerm)
+      }
+    } catch (err: any) {
+      setActionMessage('Lỗi cập nhật: ' + err.message)
+    } finally {
+      setIsSavingAdmin(false)
+    }
+  }
+
+  // Admin saves a specific event modal
+  const handleSaveEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedOrder || !editingEvent) return
+    setIsSavingEvent(true)
+    try {
+      const res = await orderApi.updateEvent(selectedOrder.id, editingEvent.id, {
+        title: eventEditTitle,
+        location: eventEditLocation,
+        description: eventEditDesc
+      })
+      if (res.success && res.data) {
+        setSelectedOrder(res.data)
+        setEditingEvent(null)
+        setActionMessage('✓ Đã lưu thay đổi mốc hành trình thành công!')
+        setTimeout(() => setActionMessage(null), 4000)
+      }
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setIsSavingEvent(false)
+    }
+  }
+
+  // Admin adds a custom event
+  const handleAddCustomEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedOrder) return
+    setIsAddingEvent(true)
+    try {
+      const res = await orderApi.addEvent(selectedOrder.id, {
+        title: newEventTitle,
+        location: newEventLocation,
+        description: newEventDesc
+      })
+      if (res.success && res.data) {
+        setSelectedOrder(res.data)
+        setShowAddEventModal(false)
+        setNewEventTitle('')
+        setNewEventLocation('')
+        setNewEventDesc('')
+        setActionMessage('✓ Đã bổ sung mốc hành trình mới thành công!')
+        setTimeout(() => setActionMessage(null), 4000)
+      }
+    } catch (err: any) {
+      alert('Lỗi: ' + err.message)
+    } finally {
+      setIsAddingEvent(false)
     }
   }
 
@@ -139,16 +292,30 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                 <Compass className="w-3.5 h-3.5 text-blue-400" />
                 order-service (:8004) &bull; ecommerce_order_db
               </span>
+
+              {canManage ? (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                  Quyền Quản Trị Viên: Cho Phép Chỉnh Sửa Vị Trí & Vận Đơn
+                </span>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Chế độ Khách hàng: Theo dõi Thời gian thực
+                </span>
+              )}
+
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 🇨🇳 Mô hình Order Trung Quốc (7 - 14 ngày)
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Theo dõi Đơn hàng & Định vị Kiện hàng Xuyên Biên Giới
+              Theo dõi Đơn hàng & Quản lý Định vị Kiện hàng
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Theo dõi lộ trình thực tế từ Nhà cung cấp Trung Quốc (Taobao / 1688 / Tmall) qua Kho trung chuyển Quảng Châu, Cửa khẩu Hữu Nghị tới tận tay khách hàng tại Việt Nam.
+              {canManage
+                ? 'Quản trị viên có toàn quyền cập nhật mốc trạm, thay đổi vị trí thực tế, ghi chú thông quan và mã vận đơn để khách hàng theo dõi trực tiếp.'
+                : 'Theo dõi lộ trình thực tế từ Nhà cung cấp Trung Quốc (Taobao / 1688 / Tmall) qua Kho trung chuyển Quảng Châu, Cửa khẩu Hữu Nghị tới tận tay tại Việt Nam.'}
             </p>
           </div>
 
@@ -165,9 +332,9 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
       </div>
 
       {actionMessage && (
-        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-700 text-emerald-200 text-sm flex items-center justify-between shadow-lg">
+        <div className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-700 text-emerald-200 text-sm flex items-center justify-between shadow-lg animate-fadeIn">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>{actionMessage}</span>
           </div>
           <button
@@ -235,7 +402,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
       </div>
 
       {/* 3. SEARCH & LOOKUP BAR */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col lg:flex-row items-center justify-between gap-4">
         <form onSubmit={handleSearch} className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-blue-400" />
           <input
@@ -282,7 +449,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
           </button>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
           <span className="text-xs text-slate-400 whitespace-nowrap">Đơn mẫu:</span>
           {orders.slice(0, 3).map((ord) => (
             <button
@@ -303,7 +470,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
       {/* 4. ACTIVE ORDER DETAILS & 6-STAGE TIMELINE TRACKING */}
       {selectedOrder ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* CỘT TRÁI: THÔNG TIN ĐƠN HÀNG & TÀI CHÍNH ĐẶT CỌC (5 Cột) */}
+          {/* CỘT TRÁI: THÔNG TIN ĐƠN HÀNG, TÀI CHÍNH & ADMIN MANAGEMENT CONSOLE (5 Cột) */}
           <div className="lg:col-span-5 space-y-6">
             {/* Thẻ Sản phẩm Đặt hàng */}
             <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl space-y-5">
@@ -346,11 +513,11 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Vận đơn nội địa Trung (SF Express):</span>
-                  <span className="font-mono text-blue-400 font-bold">{selectedOrder.cnTrackingCode || 'Đang cập nhật'}</span>
+                  <span className="font-mono text-blue-400 font-bold">{selectedOrder.cnTrackingCode || 'Chưa cập nhật'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Vận đơn bưu chính Việt Nam:</span>
-                  <span className="font-mono text-emerald-400 font-bold">{selectedOrder.vnTrackingCode || 'Đang cập nhật'}</span>
+                  <span className="font-mono text-emerald-400 font-bold">{selectedOrder.vnTrackingCode || 'Chưa cập nhật'}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Thời gian giao dự kiến:</span>
@@ -423,75 +590,178 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                 </p>
               </div>
 
-              {/* SIMULATOR: Nút chuyển trạm (Dành cho thử nghiệm & Demo nghiệp vụ) */}
-              <div className="p-4 rounded-2xl bg-blue-950/30 border border-blue-800/40 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                    Mô phỏng Chuyển trạm Kiện hàng
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400">Trạm {currentStep}/6</span>
+              {/* BẢNG ĐIỀU KHIỂN & CHỈNH SỬA VẬN ĐƠN DÀNH CHO ADMIN */}
+              {canManage && (
+                <div className="p-5 rounded-3xl bg-gradient-to-b from-blue-950/50 via-slate-950 to-slate-900 border-2 border-blue-500/40 shadow-2xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-blue-500/20">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-blue-600 text-white">
+                        <Edit3 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                          Admin: Cập Nhật Vị Trí & Vận Đơn
+                        </h4>
+                        <p className="text-[10px] text-blue-300">Cập nhật ngay để khách hàng nhận thông tin</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                      Trạm {adminStep} / 6
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSaveAdminTracking} className="space-y-3.5 text-xs">
+                    {/* 1. Chọn Trạm Checkpoint */}
+                    <div>
+                      <label className="block text-slate-300 font-semibold mb-1.5">
+                        1. Chọn Trạm Kiện Hàng Đang Tới *
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { step: 1, label: '1. Đặt cọc' },
+                          { step: 2, label: '2. Shop TQ gửi' },
+                          { step: 3, label: '3. Kho Quảng Châu' },
+                          { step: 4, label: '4. Cửa khẩu Hữu Nghị' },
+                          { step: 5, label: '5. Kho VN SOC' },
+                          { step: 6, label: '6. Đang giao hàng' }
+                        ].map((s) => (
+                          <button
+                            key={s.step}
+                            type="button"
+                            onClick={() => handleSelectAdminStep(s.step)}
+                            className={`px-2 py-2 rounded-xl text-[11px] font-mono transition-all cursor-pointer text-center ${
+                              adminStep === s.step
+                                ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 ring-2 ring-blue-400'
+                                : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
+                            }`}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 2. Vị trí thực tế */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-slate-300 font-semibold">2. Tọa độ / Vị trí thực tế *</label>
+                        <span className="text-[10px] text-slate-500">Khách sẽ thấy trên bản đồ</span>
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={adminLocation}
+                        onChange={(e) => setAdminLocation(e.target.value)}
+                        placeholder="VD: Cửa khẩu Quốc tế Hữu Nghị (Lạng Sơn)..."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium focus:outline-none focus:border-blue-500"
+                      />
+
+                      {/* Gợi ý vị trí nhanh */}
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        <span className="text-[10px] text-slate-500 self-center">Chọn nhanh:</span>
+                        {[
+                          'Kho Tổng Quảng Châu Hub (Quảng Đông, TQ)',
+                          'Cửa khẩu Quốc tế Hữu Nghị (Lạng Sơn)',
+                          'Kho Trung tâm Hà Nội SOC (Mê Linh, HN)',
+                          'Kho Tân Bình SOC (TP.HCM)'
+                        ].map((loc) => (
+                          <button
+                            key={loc}
+                            type="button"
+                            onClick={() => handleQuickLocation(loc)}
+                            className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-blue-300 border border-slate-800 cursor-pointer"
+                          >
+                            {loc.split('(')[0].trim()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 3. Ghi chú thông báo cho khách */}
+                    <div>
+                      <label className="block text-slate-300 font-semibold mb-1">
+                        3. Ghi chú chi tiết thông báo cho khách hàng *
+                      </label>
+                      <textarea
+                        rows={2}
+                        required
+                        value={adminDescription}
+                        onChange={(e) => setAdminDescription(e.target.value)}
+                        placeholder="Nhập thông tin cập nhật chi tiết lộ trình..."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-blue-500 leading-relaxed"
+                      />
+                    </div>
+
+                    {/* 4. Mã vận đơn & Thời gian dự kiến */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <label className="block text-[11px] text-slate-400 mb-1">Mã SF Express (TQ)</label>
+                        <input
+                          type="text"
+                          value={adminCnTracking}
+                          onChange={(e) => setAdminCnTracking(e.target.value)}
+                          placeholder="SF..."
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-blue-300 font-mono text-xs focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-slate-400 mb-1">Mã Bưu chính (VN)</label>
+                        <input
+                          type="text"
+                          value={adminVnTracking}
+                          onChange={(e) => setAdminVnTracking(e.target.value)}
+                          placeholder="GHN / VNPOST..."
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-emerald-300 font-mono text-xs focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] text-slate-400 mb-1">Thời gian về VN</label>
+                        <input
+                          type="text"
+                          value={adminEstimatedDays}
+                          onChange={(e) => setAdminEstimatedDays(e.target.value)}
+                          placeholder="7 - 14 ngày"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-slate-400 mb-1">Trạng thái đơn</label>
+                        <select
+                          value={adminStatus}
+                          onChange={(e) => setAdminStatus(e.target.value as OrderStatus)}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-blue-500"
+                        >
+                          <option value="processing">Đang chuẩn bị hàng</option>
+                          <option value="in_transit_cn">Đang vận chuyển nội địa TQ</option>
+                          <option value="customs">Đang thông quan Cửa khẩu</option>
+                          <option value="in_transit_vn">Đã về kho phân loại VN</option>
+                          <option value="delivering">Đang giao tận tay</option>
+                          <option value="completed">Đã giao thành công</option>
+                          <option value="cancelled">Đã hủy</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingAdmin}
+                      className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 cursor-pointer mt-2"
+                    >
+                      {isSavingAdmin ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                      <span>Lưu Cập Nhật Vị Trí & Vận Đơn Ngay</span>
+                    </button>
+                  </form>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Bấm để mô phỏng kiện hàng di chuyển qua các điểm chốt từ Trung Quốc về Việt Nam:
-                </p>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(1)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 1 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    1. Đặt cọc
-                  </button>
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(2)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 2 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    2. Shop TQ gửi
-                  </button>
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(3)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 3 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    3. Kho Quảng Châu
-                  </button>
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(4)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 4 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    4. Cửa khẩu Hữu Nghị
-                  </button>
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(5)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 5 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    5. Kho VN SOC
-                  </button>
-                  <button
-                    disabled={isUpdatingCheckpoint}
-                    onClick={() => handleSimulateCheckpoint(6)}
-                    className={`px-2 py-1.5 rounded-lg text-[10px] font-mono transition-colors cursor-pointer ${
-                      currentStep === 6 ? 'bg-blue-600 text-white font-bold' : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800'
-                    }`}
-                  >
-                    6. Đang giao hàng
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -509,9 +779,21 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                   </p>
                 </div>
 
-                <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 self-start sm:self-auto">
-                  Hiện tại: Trạm {currentStep} / 6
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                    Trạm hiện tại: {currentStep} / 6
+                  </span>
+
+                  {canManage && (
+                    <button
+                      onClick={() => setShowAddEventModal(true)}
+                      className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-indigo-600/20 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Thêm mốc phát sinh</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* TIMELINE VERTICAL STEPPER */}
@@ -567,10 +849,27 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                             </h4>
                           </div>
 
-                          <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-500" />
-                            {new Date(ev.timestamp).toLocaleString('vi-VN')}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-500" />
+                              {new Date(ev.timestamp).toLocaleString('vi-VN')}
+                            </span>
+
+                            {canManage && (
+                              <button
+                                onClick={() => {
+                                  setEditingEvent(ev)
+                                  setEventEditTitle(ev.title)
+                                  setEventEditLocation(ev.location)
+                                  setEventEditDesc(ev.description)
+                                }}
+                                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                                title="Chỉnh sửa chi tiết mốc này"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {/* Location */}
@@ -580,7 +879,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                         </div>
 
                         {/* Description */}
-                        <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                        <p className="text-xs text-slate-300 mt-2 leading-relaxed">
                           {ev.description}
                         </p>
                       </div>
@@ -672,7 +971,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
                         }}
                         className="px-3 py-1 rounded-lg bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white transition-colors cursor-pointer text-xs"
                       >
-                        Xem vị trí
+                        {canManage ? 'Quản lý vị trí' : 'Xem vị trí'}
                       </button>
                     </td>
                   </tr>
@@ -682,6 +981,167 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user: _use
           </table>
         </div>
       </div>
+
+      {/* MODAL 1: CHỈNH SỬA CHI TIẾT 1 MỐC SỰ KIỆN TRONG TIMELINE */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Chỉnh sửa Mốc Hành trình</h3>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Bước {editingEvent.checkpointStep} &bull; {editingEvent.checkpointCode}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingEvent(null)}
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEvent} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Tiêu đề mốc *</label>
+                <input
+                  type="text"
+                  required
+                  value={eventEditTitle}
+                  onChange={(e) => setEventEditTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Vị trí địa lý *</label>
+                <input
+                  type="text"
+                  required
+                  value={eventEditLocation}
+                  onChange={(e) => setEventEditLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Mô tả hành trình thông báo khách *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={eventEditDesc}
+                  onChange={(e) => setEventEditDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingEvent(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEvent}
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-lg shadow-blue-600/30"
+                >
+                  {isSavingEvent ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Lưu mốc</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: THÊM MỐC LỘ TRÌNH PHÁT SINH */}
+      {showAddEventModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400">
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Thêm Mốc Lộ Trình Phát Sinh</h3>
+                  <p className="text-[11px] text-slate-400">Bổ sung sự kiện cập nhật vị trí cho khách hàng</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddEventModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCustomEvent} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Tiêu đề mốc *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Kiểm tra đặc biệt tại Cửa khẩu / Chuyển xe liên vận..."
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Vị trí địa lý *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Cửa khẩu Hữu Nghị - Làn xe container 03..."
+                  value={newEventLocation}
+                  onChange={(e) => setNewEventLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Mô tả thông báo chi tiết *</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Nhập thông tin mô tả chi tiết sự kiện vận chuyển..."
+                  value={newEventDesc}
+                  onChange={(e) => setNewEventDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white leading-relaxed focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowAddEventModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAddingEvent}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-lg shadow-indigo-600/30"
+                >
+                  {isAddingEvent ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  <span>Thêm vào lộ trình</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

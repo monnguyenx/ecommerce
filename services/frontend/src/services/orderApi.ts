@@ -163,22 +163,105 @@ export const orderApi = {
     }
   },
 
-  // Cập nhật trạm checkpoint (Mô phỏng kiện hàng di chuyển)
+  // Cập nhật trạm checkpoint và ghi chú vị trí hành trình (Dành cho Admin)
   async updateCheckpoint(
     orderId: string,
     checkpointStep: number,
-    note?: string
+    options?: {
+      location?: string
+      description?: string
+      title?: string
+      note?: string
+    }
   ): Promise<{ success: boolean; message: string; data?: Order }> {
     try {
       const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/checkpoint`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ checkpointStep, note })
+        body: JSON.stringify({ checkpointStep, ...options })
       })
       const json = await res.json()
       return json
     } catch (err: any) {
       return { success: false, message: err.message || 'Lỗi cập nhật trạm kiện hàng' }
+    }
+  },
+
+  // Cập nhật thông tin vận đơn, trạng thái đơn hàng (Dành cho Admin)
+  async updateOrder(
+    orderId: string,
+    updates: {
+      cnTrackingCode?: string
+      vnTrackingCode?: string
+      estimatedDeliveryDays?: string
+      currentStatus?: OrderStatus
+      customerPhone?: string
+      customerAddress?: string
+      supplierPlatform?: string
+    }
+  ): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi cập nhật thông tin đơn hàng' }
+    }
+  },
+
+  // Cập nhật chi tiết 1 mốc tracking trong timeline
+  async updateEvent(
+    orderId: string,
+    eventId: string,
+    updates: {
+      title?: string
+      location?: string
+      description?: string
+      timestamp?: string
+      isCompleted?: boolean
+      isCurrent?: boolean
+    }
+  ): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/events/${eventId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi cập nhật mốc tracking' }
+    }
+  },
+
+  // Thêm mốc tracking mới vào hành trình
+  async addEvent(
+    orderId: string,
+    payload: {
+      title: string
+      location: string
+      description: string
+      checkpointStep?: number
+      checkpointCode?: CheckpointCode
+      isCompleted?: boolean
+      isCurrent?: boolean
+    }
+  ): Promise<{ success: boolean; message: string; data?: Order }> {
+    try {
+      const res = await fetch(`${ORDER_API_URL}/api/v1/orders/${orderId}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json()
+      return json
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Lỗi thêm mốc tracking' }
     }
   }
 }

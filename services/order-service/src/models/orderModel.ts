@@ -324,11 +324,16 @@ export class OrderModel {
     }
   }
 
-  // Cập nhật bước tiến trình vận chuyển (Mô phỏng đẩy trạm kiện hàng)
+  // Cập nhật bước tiến trình vận chuyển & thông tin chi tiết mốc (Dành cho Admin quản lý)
   static async updateCheckpoint(
     orderId: string,
     checkpointStep: number,
-    note?: string
+    options?: {
+      location?: string
+      description?: string
+      title?: string
+      note?: string
+    }
   ): Promise<Order | null> {
     const client = await pool.connect()
     try {
@@ -346,6 +351,19 @@ export class OrderModel {
          WHERE order_id = $2`,
         [checkpointStep, orderId]
       )
+
+      // Nếu có cập nhật vị trí hoặc mô tả chi tiết cho mốc hiện tại
+      if (options?.location || options?.description || options?.title || options?.note) {
+        const desc = options.description || options.note
+        await client.query(
+          `UPDATE order_tracking_events
+           SET location = COALESCE($3, location),
+               description = COALESCE($4, description),
+               title = COALESCE($5, title)
+           WHERE order_id = $1 AND checkpoint_step = $2`,
+          [orderId, checkpointStep, options.location || null, desc || null, options.title || null]
+        )
+      }
 
       // Lấy checkpoint_code tương ứng
       const stepRes = await client.query(
@@ -376,6 +394,135 @@ export class OrderModel {
       return null
     } finally {
       client.release()
+    }
+  }
+
+  // Cập nhật thông tin đơn hàng & mã vận đơn (Dành cho Admin)
+  static async updateOrder(
+    orderId: string,
+    updates: {
+      cnTrackingCode?: string
+      vnTrackingCode?: string
+      estimatedDeliveryDays?: string
+      currentStatus?: OrderStatus
+      customerPhone?: string
+      customerAddress?: string
+      supplierPlatform?: string
+    }
+  ): Promise<Order | null> {
+    try {
+      const existing = await this.findById(orderId)
+      if (!existing) return null
+
+      const cnTrackingCode = updates.cnTrackingCode !== undefined ? updates.cnTrackingCode : existing.cnTrackingCode
+      const vnTrackingCode = updates.vnTrackingCode !== undefined ? updates.vnTrackingCode : existing.vnTrackingCode
+      const estimatedDeliveryDays = updates.estimatedDeliveryDays !== undefined ? updates.estimatedDeliveryDays : existing.estimatedDeliveryDays
+      const currentStatus = updates.currentStatus !== undefined ? updates.currentStatus : existing.currentStatus
+      const customerPhone = updates.customerPhone !== undefined ? updates.customerPhone : existing.customerPhone
+      const customerAddress = updates.customerAddress !== undefined ? updates.customerAddress : existing.customerAddress
+      const supplierPlatform = updates.supplierPlatform !== undefined ? updates.supplierPlatform : existing.supplierPlatform
+
+      await pool.query(
+        `UPDATE orders
+         SET cn_tracking_code = $1, vn_tracking_code = $2, estimated_delivery_days = $3,
+             current_status = $4, customer_phone = $5, customer_address = $6, supplier_platform = $7,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $8`,
+        [cnTrackingCode, vnTrackingCode, estimatedDeliveryDays, currentStatus, customerPhone, customerAddress, supplierPlatform, orderId]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.updateOrder error:', error)
+      return null
+    }
+  }
+
+  // Cập nhật chi tiết 1 mốc sự kiện cụ thể trong Timeline (Dành cho Admin)
+  static async updateEvent(
+    orderId: string,
+    eventId: string,
+    updates: {
+      title?: string
+      location?: string
+      description?: string
+      isCompleted?: boolean
+      isCurrent?: boolean
+      timestamp?: string
+    }
+  ): Promise<Order | null> {
+    try {
+      const res = await pool.query(
+        'SELECT * FROM order_tracking_events WHERE id = $1 AND order_id = $2',
+        [eventId, orderId]
+      )
+      if (res.rows.length === 0) return null
+      const existing = res.rows[0]
+
+      const title = updates.title ?? existing.title
+      const location = updates.location ?? existing.location
+      const description = updates.description ?? existing.description
+      const isCompleted = updates.isCompleted ?? existing.is_completed
+      const isCurrent = updates.isCurrent ?? existing.is_current
+      const timestamp = updates.timestamp ?? existing.timestamp
+
+      await pool.query(
+        `UPDATE order_tracking_events
+         SET title = $1, location = $2, description = $3, is_completed = $4, is_current = $5, timestamp = $6
+         WHERE id = $7 AND order_id = $8`,
+        [title, location, description, isCompleted, isCurrent, timestamp, eventId, orderId]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.updateEvent error:', error)
+      return null
+    }
+  }
+
+  // Thêm sự kiện mốc mới vào lộ trình (Dành cho Admin)
+  static async addEvent(
+    orderId: string,
+    payload: {
+      title: string
+      location: string
+      description: string
+      checkpointStep?: number
+      checkpointCode?: CheckpointCode
+      isCompleted?: boolean
+      isCurrent?: boolean
+    }
+  ): Promise<Order | null> {
+    try {
+      const newId = `evt-${Date.now().toString(36)}`
+      const maxStepRes = await pool.query(
+        'SELECT COALESCE(MAX(checkpoint_step), 0) as "maxStep" FROM order_tracking_events WHERE order_id = $1',
+        [orderId]
+      )
+      const nextStep = payload.checkpointStep || parseInt(maxStepRes.rows[0].maxStep, 10) + 1
+      const cpCode = payload.checkpointCode || 'CUSTOMS_CLEARING'
+
+      await pool.query(
+        `INSERT INTO order_tracking_events (
+          id, order_id, checkpoint_step, checkpoint_code, title, location, description, timestamp, is_completed, is_current
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, $8, $9)`,
+        [
+          newId,
+          orderId,
+          nextStep,
+          cpCode,
+          payload.title,
+          payload.location,
+          payload.description,
+          payload.isCompleted ?? true,
+          payload.isCurrent ?? true
+        ]
+      )
+
+      return this.findById(orderId)
+    } catch (error) {
+      console.error('[order-service] OrderModel.addEvent error:', error)
+      return null
     }
   }
 

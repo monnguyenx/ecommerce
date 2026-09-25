@@ -12,6 +12,9 @@ router.get('/orders/stats/summary', OrderController.getStats)
 router.get('/orders/lookup/:code', OrderController.lookupByCode)
 router.get('/orders/:id', OrderController.getOrderById)
 router.post('/orders', OrderController.createOrder)
+router.put('/orders/:id', OrderController.updateOrder)
 router.patch('/orders/:id/checkpoint', OrderController.updateCheckpoint)
+router.post('/orders/:id/events', OrderController.addEvent)
+router.put('/orders/:id/events/:eventId', OrderController.updateEvent)
 
 export default router
