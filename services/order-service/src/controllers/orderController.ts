@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { OrderModel } from '../models/orderModel.js'
+import { broadcastOrderEvent } from '../socket.js'
 
 export class OrderController {
   // GET /api/v1/orders (Danh sách đơn hàng)
@@ -136,6 +137,17 @@ export class OrderController {
         notes
       })
 
+      if (newOrder) {
+        broadcastOrderEvent({
+          orderId: newOrder.id,
+          orderCode: newOrder.orderCode,
+          type: 'ORDER_CREATED',
+          title: 'Đơn hàng mới được tạo',
+          message: `Đơn [${newOrder.orderCode}] của khách hàng ${newOrder.customerName} đã được tạo thành công!`,
+          order: newOrder
+        })
+      }
+
       res.status(201).json({
         success: true,
         message: 'Tạo đơn hàng order Trung Quốc thành công! Đã kích hoạt theo dõi vận chuyển.',
@@ -173,6 +185,15 @@ export class OrderController {
         return
       }
 
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'CHECKPOINT_UPDATED',
+        title: `Đã cập nhật Trạm ${checkpointStep}/6`,
+        message: `Đơn [${updated.orderCode}] hiện đang tại: ${location || updated.currentCheckpoint}`,
+        order: updated
+      })
+
       res.status(200).json({
         success: true,
         message: `Đã cập nhật tiến trình đơn hàng sang bước [${checkpointStep}] thành công!`,
@@ -196,6 +217,15 @@ export class OrderController {
         return
       }
 
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'ORDER_UPDATED',
+        title: 'Cập nhật thông tin vận đơn',
+        message: `Đơn [${updated.orderCode}]: Mã SF: ${updated.cnTrackingCode || 'N/A'}, Mã VN: ${updated.vnTrackingCode || 'N/A'}`,
+        order: updated
+      })
+
       res.status(200).json({
         success: true,
         message: 'Đã cập nhật thông tin đơn hàng và mã vận đơn thành công!',
@@ -218,6 +248,15 @@ export class OrderController {
         res.status(404).json({ success: false, message: 'Không tìm thấy sự kiện tracking cần cập nhật' })
         return
       }
+
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'ORDER_UPDATED',
+        title: 'Chỉnh sửa mốc lộ trình',
+        message: `Đơn [${updated.orderCode}]: Mốc lộ trình đã được cập nhật`,
+        order: updated
+      })
 
       res.status(200).json({
         success: true,
@@ -259,6 +298,15 @@ export class OrderController {
         return
       }
 
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'EVENT_ADDED',
+        title: 'Mốc sự kiện mới',
+        message: `Đơn [${updated.orderCode}]: ${title} - ${location}`,
+        order: updated
+      })
+
       res.status(201).json({
         success: true,
         message: 'Đã thêm mốc lộ trình mới cho kiện hàng!',
@@ -286,6 +334,15 @@ export class OrderController {
         res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
         return
       }
+
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'QC_UPDATED',
+        title: 'Ảnh kiểm hàng QC mới từ Kho Quảng Châu',
+        message: `Đơn [${updated.orderCode}]: Kiểm định viên vừa tải lên ${updated.qcPhotos?.length || 0} ảnh kiểm hàng thực tế!`,
+        order: updated
+      })
 
       res.status(200).json({
         success: true,
@@ -325,6 +382,15 @@ export class OrderController {
         ? 'Đã gửi yêu cầu đổi trả / hoàn hàng tại Trung Quốc tới chuyên viên mua hộ!'
         : 'Đã cập nhật trạng thái QC kiểm hàng.'
 
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: qcStatus === 'approved' ? 'QC_APPROVED' : 'QC_REJECTED',
+        title: qcStatus === 'approved' ? 'Khách hàng đã duyệt ảnh QC' : 'Khách yêu cầu đổi/trả hàng tại TQ',
+        message: msg,
+        order: updated
+      })
+
       res.status(200).json({
         success: true,
         message: msg,
@@ -346,6 +412,15 @@ export class OrderController {
         res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' })
         return
       }
+
+      broadcastOrderEvent({
+        orderId: updated.id,
+        orderCode: updated.orderCode,
+        type: 'DEPOSIT_CONFIRMED',
+        title: 'Đặt cọc 50% thành công qua VietQR',
+        message: `Đơn [${updated.orderCode}]: Đã khớp tiền đặt cọc qua Napas 247! Đơn hàng được kích hoạt thu mua.`,
+        order: updated
+      })
 
       res.status(200).json({
         success: true,

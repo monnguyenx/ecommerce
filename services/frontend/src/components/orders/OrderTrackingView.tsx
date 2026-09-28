@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Compass,
   Search,
@@ -26,10 +26,13 @@ import {
   Eye,
   Sparkles,
   QrCode,
-  Calculator
+  Calculator,
+  Printer
 } from 'lucide-react'
 import { VietQrDepositModal } from './VietQrDepositModal'
 import { ShippingCostCalculator } from '../calculator/ShippingCostCalculator'
+import { OrderWaybillModal } from './OrderWaybillModal'
+import { socketService, type OrderLiveEvent } from '../../services/socketService'
 import {
   orderApi,
   type Order,
@@ -92,6 +95,12 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
   const [adminQcStatusInput, setAdminQcStatusInput] = useState<QcStatus>('pending')
   const [showVietQrModal, setShowVietQrModal] = useState(false)
   const [showCalculatorModal, setShowCalculatorModal] = useState(false)
+  const [showWaybillModal, setShowWaybillModal] = useState(false)
+
+  const selectedOrderRef = useRef<Order | null>(null)
+  useEffect(() => {
+    selectedOrderRef.current = selectedOrder
+  }, [selectedOrder])
 
   const getCheckpointStepNumber = (code?: CheckpointCode): number => {
     switch (code) {
@@ -143,6 +152,53 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
   useEffect(() => {
     loadData()
   }, [statusFilter])
+
+  // 1. Socket.io Real-time Live Subscription
+  useEffect(() => {
+    const unsubscribe = socketService.subscribe((event: OrderLiveEvent) => {
+      // Tự động tải lại danh sách đơn và thống kê khi có bất kỳ sự kiện nào
+      orderApi.getOrders({ search: searchTerm, status: statusFilter }).then(setProductsOrders)
+      orderApi.getStats().then(setStats)
+
+      // Nếu sự kiện thuộc về đơn hàng đang mở trên màn hình, cập nhật tức thời
+      if (
+        selectedOrderRef.current &&
+        (selectedOrderRef.current.id === event.orderId ||
+          selectedOrderRef.current.orderCode === event.orderCode)
+      ) {
+        if (event.order) {
+          setSelectedOrder(event.order)
+        } else {
+          orderApi.getOrderById(event.orderId).then((fresh) => {
+            if (fresh) setSelectedOrder(fresh)
+          })
+        }
+        setActionMessage(`⚡ [Thời Gian Thực] ${event.title}: ${event.message}`)
+        setTimeout(() => setActionMessage(null), 5000)
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [searchTerm, statusFilter])
+
+  // Join/leave socket room theo đơn hàng đang chọn
+  useEffect(() => {
+    if (selectedOrder?.id) {
+      socketService.joinOrder(selectedOrder.id)
+      return () => {
+        socketService.leaveOrder(selectedOrder.id)
+      }
+    }
+  }, [selectedOrder?.id])
+
+  // Chuyển nhanh đơn hàng khi nhận initialOrderId từ thông báo
+  useEffect(() => {
+    if (initialOrderId && (!selectedOrder || selectedOrder.id !== initialOrderId)) {
+      handleSelectOrder(initialOrderId)
+    }
+  }, [initialOrderId])
 
   // Sync form inputs whenever selectedOrder updates
   useEffect(() => {
@@ -434,6 +490,11 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 🇨🇳 Mô hình Order Trung Quốc (7 - 14 ngày)
               </span>
+
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                ⚡ Socket.io: Đồng Bộ Trực Tiếp (Zero Refresh)
+              </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -446,7 +507,18 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {selectedOrder && (
+              <button
+                type="button"
+                onClick={() => setShowWaybillModal(true)}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 via-indigo-700 to-blue-600 hover:from-blue-600 hover:to-indigo-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-700/30 cursor-pointer transition-all btn-press border border-blue-400/30"
+              >
+                <Printer className="w-4 h-4" />
+                <span>In Phiếu Vận Đơn (Song Ngữ)</span>
+              </button>
+            )}
+
             <button
               onClick={() => setShowCalculatorModal(true)}
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 cursor-pointer transition-all btn-press"
@@ -713,6 +785,15 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                   >
                     <QrCode className="w-4 h-4 text-blue-400" />
                     <span>Xem Mã VietQR Napas 247 Của Đơn Hàng</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowWaybillModal(true)}
+                    className="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600/25 to-teal-600/25 hover:from-emerald-600/40 hover:to-teal-600/40 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer btn-press shadow-sm"
+                  >
+                    <Printer className="w-4 h-4 text-emerald-400" />
+                    <span>In Phiếu Vận Đơn &amp; Tem Dán Kiện (Song Ngữ)</span>
                   </button>
                 </div>
               </div>
@@ -1692,6 +1773,15 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
             <ShippingCostCalculator onClose={() => setShowCalculatorModal(false)} />
           </div>
         </div>
+      )}
+
+      {/* MODAL: PHIẾU VẬN ĐƠN & KHAI BÁO HẢI QUAN SONG NGỮ TRUNG - VIỆT (WAYBILL & PACKING SLIP) */}
+      {selectedOrder && (
+        <OrderWaybillModal
+          order={selectedOrder}
+          isOpen={showWaybillModal}
+          onClose={() => setShowWaybillModal(false)}
+        />
       )}
     </div>
   )

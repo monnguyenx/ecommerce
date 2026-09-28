@@ -7,6 +7,7 @@ import { UserManagementView } from '../components/users/UserManagementView'
 import { AuthManagementView } from '../components/auth/AuthManagementView'
 import { SystemTopologyView } from '../components/system/SystemTopologyView'
 import { ShippingCostCalculator } from '../components/calculator/ShippingCostCalculator'
+import { LiveOrderNotificationCenter } from '../components/notifications/LiveOrderNotificationCenter'
 
 interface DashboardPreviewProps {
   user: User
@@ -15,6 +16,7 @@ interface DashboardPreviewProps {
 
 export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogout }) => {
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('products')
+  const [focusedOrderId, setFocusedOrderId] = useState<string | undefined>(undefined)
 
   const screenTitle = {
     products: 'Quản lý Sản phẩm & Mặt hàng (product-service)',
@@ -24,6 +26,11 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
     auth: 'Xác thực & Phiên làm việc (auth-service)',
     topology: 'Sơ đồ Kiến trúc Toàn cụm Microservices'
   }[activeScreen]
+
+  const handleSelectOrderFromNotification = (orderId: string) => {
+    setFocusedOrderId(orderId)
+    setActiveScreen('orders')
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row w-full overflow-hidden">
@@ -54,6 +61,9 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>Gateway: Direct Call</span>
             </span>
+
+            {/* Socket.io Real-time Notification Center */}
+            <LiveOrderNotificationCenter onSelectOrder={handleSelectOrderFromNotification} />
           </div>
         </header>
 
@@ -66,7 +76,9 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
                 onGoToTracking={() => setActiveScreen('orders')}
               />
             )}
-            {activeScreen === 'orders' && <OrderTrackingView user={user} />}
+            {activeScreen === 'orders' && (
+              <OrderTrackingView user={user} initialOrderId={focusedOrderId} />
+            )}
             {activeScreen === 'calculator' && <ShippingCostCalculator />}
             {activeScreen === 'users' && <UserManagementView user={user} />}
             {activeScreen === 'auth' && <AuthManagementView user={user} />}
