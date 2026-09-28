@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Compass,
   Search,
   Package,
   Truck,
@@ -469,41 +468,24 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
       {/* 1. HEADER BANNER */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-950 to-slate-900 border border-blue-800/40 p-6 sm:p-8 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
+          <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1.5">
-                <Compass className="w-3.5 h-3.5 text-blue-400" />
-                order-service (:8004) &bull; ecommerce_order_db
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Đồng bộ trực tiếp
               </span>
-
-              {canManage ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
-                  Quyền Quản Trị Viên: Cho Phép Chỉnh Sửa Vị Trí & Vận Đơn
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Chế độ Khách hàng: Theo dõi Thời gian thực
+              {canManage && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/25">
+                  Quản trị viên
                 </span>
               )}
-
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                🇨🇳 Mô hình Order Trung Quốc (7 - 14 ngày)
-              </span>
-
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                ⚡ Socket.io: Đồng Bộ Trực Tiếp (Zero Refresh)
-              </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Theo dõi Đơn hàng & Quản lý Định vị Kiện hàng
+              Theo Dõi &amp; Quản Lý Đơn Hàng
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              {canManage
-                ? 'Quản trị viên có toàn quyền cập nhật mốc trạm, thay đổi vị trí thực tế, ghi chú thông quan và mã vận đơn để khách hàng theo dõi trực tiếp.'
-                : 'Theo dõi lộ trình thực tế từ Nhà cung cấp Trung Quốc (Taobao / 1688 / Tmall) qua Kho trung chuyển Quảng Châu, Cửa khẩu Hữu Nghị tới tận tay tại Việt Nam.'}
+            <p className="text-xs sm:text-sm text-slate-300">
+              Lộ trình vận chuyển xuyên biên giới và định vị bưu phẩm thời gian thực.
             </p>
           </div>
 
@@ -825,9 +807,8 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       </div>
                       <div>
                         <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                          Admin: Cập Nhật Vị Trí & Vận Đơn
+                          Cập Nhật Vị Trí &amp; Vận Đơn
                         </h4>
-                        <p className="text-[10px] text-blue-300">Cập nhật ngay để khách hàng nhận thông tin</p>
                       </div>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
@@ -836,10 +817,10 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                   </div>
 
                   <form onSubmit={handleSaveAdminTracking} className="space-y-3.5 text-xs">
-                    {/* 1. Chọn Trạm Checkpoint */}
+                    {/* Chọn Trạm Checkpoint */}
                     <div>
                       <label className="block text-slate-300 font-semibold mb-1.5">
-                        1. Chọn Trạm Kiện Hàng Đang Tới *
+                        Mốc Lộ Trình *
                       </label>
                       <div className="grid grid-cols-3 gap-1.5">
                         {[
@@ -866,12 +847,11 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       </div>
                     </div>
 
-                    {/* 2. Vị trí thực tế */}
+                    {/* Vị trí thực tế */}
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-slate-300 font-semibold">2. Tọa độ / Vị trí thực tế *</label>
-                        <span className="text-[10px] text-slate-500">Khách sẽ thấy trên bản đồ</span>
-                      </div>
+                      <label className="block text-slate-300 font-semibold mb-1">
+                        Vị Trí Hiện Tại *
+                      </label>
                       <input
                         type="text"
                         required
@@ -883,7 +863,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
 
                       {/* Gợi ý vị trí nhanh */}
                       <div className="flex flex-wrap gap-1 mt-1.5">
-                        <span className="text-[10px] text-slate-500 self-center">Chọn nhanh:</span>
+                        <span className="text-[10px] text-slate-500 self-center">Gợi ý nhanh:</span>
                         {[
                           'Kho Tổng Quảng Châu Hub (Quảng Đông, TQ)',
                           'Cửa khẩu Quốc tế Hữu Nghị (Lạng Sơn)',
@@ -902,10 +882,10 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       </div>
                     </div>
 
-                    {/* 3. Ghi chú thông báo cho khách */}
+                    {/* Ghi chú */}
                     <div>
                       <label className="block text-slate-300 font-semibold mb-1">
-                        3. Ghi chú chi tiết thông báo cho khách hàng *
+                        Ghi Chú Tiến Độ *
                       </label>
                       <textarea
                         rows={2}
@@ -917,10 +897,10 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       />
                     </div>
 
-                    {/* 4. Mã vận đơn & Thời gian dự kiến */}
+                    {/* Mã vận đơn & Thời gian dự kiến */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Mã SF Express (TQ)</label>
+                        <label className="block text-[11px] text-slate-400 mb-1">Mã SF Express</label>
                         <input
                           type="text"
                           value={adminCnTracking}
@@ -931,7 +911,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                       </div>
 
                       <div>
-                        <label className="block text-[11px] text-slate-400 mb-1">Mã Bưu chính (VN)</label>
+                        <label className="block text-[11px] text-slate-400 mb-1">Mã Bưu chính VN</label>
                         <input
                           type="text"
                           value={adminVnTracking}
@@ -1003,13 +983,10 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                     </span>
                     <div>
                       <h3 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
-                        Ảnh Chụp Thực Tế Kiểm Hàng Tại Kho TQ
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          QC Live Photos
-                        </span>
+                        Ảnh Kiểm Định Hàng Hóa Tại Kho
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Kiểm tra ngoại quan, seal, phụ kiện tại Kho Quảng Châu Hub trước khi bay về VN
+                        Ảnh chụp thực tế ngoại quan kiện hàng tại trạm trung chuyển.
                       </p>
                     </div>
                   </div>
@@ -1101,11 +1078,11 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                   ))}
                 </div>
               ) : (
-                <div className="p-8 rounded-2xl bg-slate-950 border border-dashed border-slate-800 text-center space-y-2">
-                  <Camera className="w-8 h-8 text-slate-600 mx-auto animate-pulse" />
-                  <p className="text-xs font-semibold text-slate-300">Chưa có ảnh kiểm hàng thực tế</p>
+                <div className="p-8 rounded-2xl bg-slate-950 border border-dashed border-slate-800 text-center space-y-1.5">
+                  <Camera className="w-8 h-8 text-slate-600 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-300">Chưa có ảnh kiểm định</p>
                   <p className="text-[11px] text-slate-500 max-w-md mx-auto">
-                    Kiện hàng đang di chuyển từ nhà cung cấp tới Kho Tổng Quảng Châu Hub. Ngay khi nhân viên kho mở hộp kiểm định, ảnh HD thực tế sẽ tự động hiển thị tại đây.
+                    Ảnh chụp sản phẩm sẽ được kho cập nhật khi hàng đến trạm.
                   </p>
                 </div>
               )}
@@ -1116,17 +1093,17 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                   {selectedOrder.qcStatus === 'approved' ? (
                     <span className="text-emerald-400 flex items-center gap-1.5 font-medium">
                       <CheckCircle2 className="w-4 h-4" />
-                      Kiện hàng đã được bạn duyệt chất lượng và đang được đóng gói niêm phong để chuyển về VN.
+                      Đã duyệt chất lượng hàng hóa.
                     </span>
                   ) : selectedOrder.qcStatus === 'rejected' ? (
                     <span className="text-red-400 flex items-center gap-1.5 font-medium">
                       <AlertTriangle className="w-4 h-4" />
-                      Đã ghi nhận yêu cầu đổi trả tại Trung Quốc. Đơn vị đang đàm phán hoàn tiền/đổi hàng với Shop.
+                      Đã ghi nhận yêu cầu đổi trả hàng.
                     </span>
                   ) : (
                     <span className="text-slate-300 flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-amber-400" />
-                      Kiểm tra kỹ hình ảnh thực tế. Bạn có quyền yêu cầu đổi/trả ngay tại TQ mà không mất phí quốc tế!
+                      Xác nhận kiểm tra ngoại quan kiện hàng.
                     </span>
                   )}
                 </div>
@@ -1163,11 +1140,8 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                 <div>
                   <h3 className="text-base font-bold text-white flex items-center gap-2">
                     <Truck className="w-5 h-5 text-blue-400" />
-                    Hành trình Vận chuyển Xuyên Biên Giới (China ➔ VN)
+                    Lộ Trình Vận Chuyển Chi Tiết
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Hàng hóa được cập nhật vị trí real-time tại từng trạm trung chuyển
-                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -1424,7 +1398,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Mô tả hành trình thông báo khách *</label>
+                <label className="block text-slate-300 font-semibold mb-1">Mô tả hành trình *</label>
                 <textarea
                   rows={3}
                   required
@@ -1466,8 +1440,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Thêm Mốc Lộ Trình Phát Sinh</h3>
-                  <p className="text-[11px] text-slate-400">Bổ sung sự kiện cập nhật vị trí cho khách hàng</p>
+                  <h3 className="text-sm font-bold text-white">Thêm Mốc Lộ Trình</h3>
                 </div>
               </div>
               <button
@@ -1484,7 +1457,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
                 <input
                   type="text"
                   required
-                  placeholder="VD: Kiểm tra đặc biệt tại Cửa khẩu / Chuyển xe liên vận..."
+                  placeholder="VD: Kiểm tra tại Cửa khẩu / Bàn giao xe liên vận..."
                   value={newEventTitle}
                   onChange={(e) => setNewEventTitle(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-blue-500"
@@ -1504,7 +1477,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({ user, init
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Mô tả thông báo chi tiết *</label>
+                <label className="block text-slate-300 font-semibold mb-1">Mô tả chi tiết *</label>
                 <textarea
                   rows={3}
                   required

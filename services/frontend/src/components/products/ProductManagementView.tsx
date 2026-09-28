@@ -157,7 +157,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
       setNewProductCode(`SP-${Math.random().toString(36).substring(2, 6).toUpperCase()}`)
       setNewName('')
       setNewBrand('')
-      setActionMessage('Thêm sản phẩm mới và lưu mã vào bảng product_codes thành công!')
+      setActionMessage('Thêm sản phẩm mới thành công!')
       setTimeout(() => setActionMessage(null), 3000)
       loadData()
     } else {
@@ -186,23 +186,14 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
 
   return (
     <div className="space-y-7 pb-12">
-      {/* Top Banner with Backend Service Info */}
+      {/* Top Banner */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-slate-900 border border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shadow-xl">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              SERVICE: product-service (Port :8003)
-            </span>
-          </div>
-          <h2 className="text-2xl font-black text-white mt-1 flex items-center gap-2.5">
-            <span>Catalog Sản phẩm & Mặt hàng (Items/SKU)</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full font-mono bg-blue-500/20 text-blue-300 border border-blue-400/30 font-semibold">
-              SQUARE CARDS VIEW
-            </span>
+          <h2 className="text-2xl font-black text-white flex items-center gap-2.5">
+            <span>Sản Phẩm &amp; Mặt Hàng</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-            Hiển thị trực quan theo dạng thẻ ô vuông hình ảnh sắc nét, tương tác xem trực tiếp các biến thể SKU, giá cả và tồn kho real-time.
+          <p className="text-xs text-slate-400 mt-1">
+            Quản lý danh mục sản phẩm, biến thể SKU và số lượng tồn kho.
           </p>
         </div>
 
@@ -762,7 +753,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
           </div>
         ) : (
           <div className="p-12 text-center rounded-3xl bg-slate-900/80 border border-slate-800 text-slate-400 text-sm">
-            {isLoading ? 'Đang kết nối tải sản phẩm từ product-service...' : 'Không tìm thấy sản phẩm nào phù hợp.'}
+            {isLoading ? 'Đang tải danh sách sản phẩm...' : 'Không tìm thấy sản phẩm nào phù hợp.'}
           </div>
         )}
       </div>
@@ -771,10 +762,7 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
           <div className="w-full max-w-lg bg-slate-900/95 rounded-3xl border border-slate-800 shadow-2xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto animate-scale-up">
-            <h3 className="text-lg font-bold text-white mb-1 font-heading">Thêm sản phẩm mới vào Catalog</h3>
-            <p className="text-xs text-slate-400 mb-5">
-              Dữ liệu sẽ được lưu trực tiếp vào backend <span className="font-mono text-blue-400">product-service:8003</span>
-            </p>
+            <h3 className="text-lg font-bold text-white mb-4 font-heading">Thêm Sản Phẩm Mới</h3>
 
             <form onSubmit={handleCreateProduct} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -791,9 +779,8 @@ export const ProductManagementView: React.FC<ProductManagementViewProps> = ({ us
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-300 mb-1 flex items-center justify-between">
-                    <span>Mã sản phẩm (Code) *</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Bảng product_codes</span>
+                  <label className="block text-xs font-semibold text-indigo-300 mb-1">
+                    Mã sản phẩm (Code) *
                   </label>
                   <input
                     type="text"

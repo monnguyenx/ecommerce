@@ -32,56 +32,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
     label: string
     sublabel: string
     icon: React.ReactNode
-    badge: string
-    port: string
   }> = [
     {
       id: 'products',
       label: 'Sản phẩm & Mặt hàng',
-      sublabel: 'product-service (Items/SKU)',
-      icon: <Package className="w-5 h-5" />,
-      badge: 'Port :8003',
-      port: '8003'
+      sublabel: 'Danh mục, biến thể & tồn kho',
+      icon: <Package className="w-5 h-5" />
     },
     {
       id: 'orders',
-      label: 'Đơn hàng & Vị trí Kiện',
-      sublabel: 'order-service (Tracking 7-14d)',
-      icon: <Compass className="w-5 h-5" />,
-      badge: 'Port :8004',
-      port: '8004'
+      label: 'Đơn hàng & Vận chuyển',
+      sublabel: 'Lộ trình & định vị kiện hàng',
+      icon: <Compass className="w-5 h-5" />
     },
     {
       id: 'calculator',
-      label: 'Tính Cước & Cân Nặng',
-      sublabel: 'IATA Volumetric (TQ ➔ VN)',
-      icon: <Calculator className="w-5 h-5" />,
-      badge: 'Calculator',
-      port: 'Tool'
+      label: 'Tính Cước Vận Chuyển',
+      sublabel: 'Ước tính cân nặng & thể tích',
+      icon: <Calculator className="w-5 h-5" />
     },
     {
       id: 'users',
-      label: 'Quản lý Người dùng',
-      sublabel: 'user-service (Profiles/RBAC)',
-      icon: <Users className="w-5 h-5" />,
-      badge: 'Port :8002',
-      port: '8002'
+      label: 'Quản Lý Người Dùng',
+      sublabel: 'Khách hàng & địa chỉ nhận',
+      icon: <Users className="w-5 h-5" />
     },
     {
       id: 'auth',
-      label: 'Xác thực & Phân quyền',
-      sublabel: 'auth-service (JWT Session)',
-      icon: <ShieldCheck className="w-5 h-5" />,
-      badge: 'Port :8001',
-      port: '8001'
+      label: 'Bảo Mật & Phân Quyền',
+      sublabel: 'Phiên làm việc & vai trò',
+      icon: <ShieldCheck className="w-5 h-5" />
     },
     {
       id: 'topology',
-      label: 'Kiến trúc Hệ thống',
-      sublabel: 'Microservices Topology',
-      icon: <Layers className="w-5 h-5" />,
-      badge: '5 Nodes',
-      port: 'Cluster'
+      label: 'Hạ Tầng Hệ Thống',
+      sublabel: 'Trạng thái kết nối dịch vụ',
+      icon: <Layers className="w-5 h-5" />
     }
   ]
 
@@ -162,22 +148,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-white/20 text-white border border-white/20'
-                        : 'bg-slate-900 text-slate-400 group-hover:text-slate-300 border border-slate-800'
-                    }`}
-                  >
-                    {item.port}
-                  </span>
-                  <ChevronRight
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      isActive ? 'translate-x-0.5 text-white' : 'text-slate-600 group-hover:translate-x-1 group-hover:text-slate-300'
-                    }`}
-                  />
-                </div>
+                <ChevronRight
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    isActive ? 'translate-x-0.5 text-white' : 'text-slate-600 group-hover:translate-x-1 group-hover:text-slate-300'
+                  }`}
+                />
               </button>
             )
           })}

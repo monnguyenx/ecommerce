@@ -57,9 +57,9 @@ export const DashboardPreview: React.FC<DashboardPreviewProps> = ({ user, onLogo
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-slate-900/90 border border-slate-800/90 text-slate-300 shadow-sm hover:border-slate-700 transition-colors">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-900/90 border border-slate-800 text-slate-300 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Gateway: Direct Call</span>
+              <span>Hệ Thống Hoạt Động</span>
             </span>
 
             {/* Socket.io Real-time Notification Center */}

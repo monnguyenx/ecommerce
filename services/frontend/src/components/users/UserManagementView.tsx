@@ -67,18 +67,12 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({ user }) 
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with Backend Service Info */}
+      {/* Top Banner */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              SERVICE: user-service (Port :8002)
-            </span>
-          </div>
-          <h2 className="text-xl font-black text-white mt-1 font-heading">Quản lý Người dùng & Hồ sơ tài khoản</h2>
+          <h2 className="text-xl font-black text-white font-heading">Quản Lý Người Dùng &amp; Tài Khoản</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Nghiệp vụ lưu trữ thông tin khách hàng, phân quyền vai trò (RBAC), lịch sử chi tiêu và địa chỉ nhận hàng.
+            Danh sách người dùng, vai trò tài khoản và địa chỉ nhận hàng.
           </p>
         </div>
 

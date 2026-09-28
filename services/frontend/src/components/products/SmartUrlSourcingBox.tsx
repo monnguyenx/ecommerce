@@ -306,15 +306,7 @@ export const SmartUrlSourcingBox: React.FC<SmartUrlSourcingBoxProps> = ({
               <Link2 className="w-5 h-5" />
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">Hộp Dán Link Taobao / 1688 / Tmall Thông Minh</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30">
-                  Smart URL Parser
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Tự động bóc tách tên, ảnh HD, biến thể và quy đổi CNY sang VND theo tỷ giá thị trường
-              </p>
+              <h3 className="text-base font-bold text-white">Nhập Link Đặt Hàng Quốc Tế</h3>
             </div>
           </div>
         </div>
@@ -361,7 +353,7 @@ export const SmartUrlSourcingBox: React.FC<SmartUrlSourcingBoxProps> = ({
                   type="text"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="Dán link sản phẩm từ Taobao, 1688, Tmall... (VD: https://item.taobao.com/item.htm?id=...)"
+                  placeholder="Nhập link sản phẩm từ Taobao, 1688, Tmall..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-24 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-mono"
                 />
                 <button
@@ -384,13 +376,13 @@ export const SmartUrlSourcingBox: React.FC<SmartUrlSourcingBoxProps> = ({
                 ) : (
                   <Sparkles className="w-4 h-4" />
                 )}
-                <span>Bóc Tách Dữ Liệu</span>
+                <span>Tìm Sản Phẩm</span>
               </button>
             </div>
 
             {/* Quick Sample Links */}
             <div className="flex items-center gap-2 flex-wrap text-xs">
-              <span className="text-slate-500 text-[11px]">Thử link mẫu:</span>
+              <span className="text-slate-500 text-[11px]">Link mẫu:</span>
               <button
                 type="button"
                 onClick={() => handleSelectPreset('taobao')}

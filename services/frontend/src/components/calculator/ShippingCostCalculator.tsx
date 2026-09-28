@@ -207,16 +207,11 @@ TỔNG CƯỚC ƯỚC TÍNH: ${totalCost.toLocaleString('vi-VN')} đ`
             <Calculator className="w-6 h-6" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-bold text-white">
-                Máy Tính Cước & Biểu Phí Vận Chuyển Kiện Hàng
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                IATA / 6000
-              </span>
-            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white">
+              Tính Cước &amp; Cân Nặng Kiện Hàng
+            </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              So sánh cước cân nặng vs cước quy đổi thể tích cồng kềnh từ Trung Quốc về Việt Nam
+              Ước tính chi phí vận chuyển quốc tế theo khối lượng và quy đổi thể tích.
             </p>
           </div>
         </div>
@@ -245,7 +240,7 @@ TỔNG CƯỚC ƯỚC TÍNH: ${totalCost.toLocaleString('vi-VN')} đ`
       <div className="px-5 sm:px-6 py-3.5 bg-slate-950/40 border-b border-slate-800/60 flex items-center gap-2 overflow-x-auto text-xs">
         <span className="text-slate-500 font-medium whitespace-nowrap text-[11px] flex items-center gap-1">
           <Sparkles className="w-3 h-3 text-amber-400" />
-          Gợi ý kiện mẫu:
+          Kiện mẫu:
         </span>
         {PRESETS.map((p) => (
           <button

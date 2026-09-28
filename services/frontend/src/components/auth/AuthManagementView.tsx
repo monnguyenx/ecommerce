@@ -35,7 +35,7 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
       })
       const data = await res.json()
       if (res.ok && data.valid) {
-        setVerifyStatus('Token hoàn toàn hợp lệ! Được xác nhận từ auth-service (:8001)')
+        setVerifyStatus('Token phiên làm việc hợp lệ!')
       } else {
         setVerifyStatus('Xác thực thất bại hoặc Token đã hết hạn.')
       }
@@ -48,18 +48,12 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
 
   return (
     <div className="space-y-6">
-      {/* Top Banner with Backend Service Info */}
+      {/* Top Banner */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              SERVICE: auth-service (Port :8001)
-            </span>
-          </div>
-          <h2 className="text-xl font-black text-white mt-1 font-heading">Xác thực & Bảo mật (JWT & RBAC)</h2>
+          <h2 className="text-xl font-black text-white font-heading">Bảo Mật &amp; Phiên Đăng Nhập</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Nghiệp vụ cấp phát token phiên làm việc, mã hóa mật khẩu Bcrypt, phân quyền vai trò và API verify token cho các microservice khác.
+            Quản lý mã định danh JWT và phân quyền hạn tài khoản.
           </p>
         </div>
 
@@ -69,7 +63,7 @@ export const AuthManagementView: React.FC<AuthManagementViewProps> = ({ user }) 
           className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-semibold flex items-center gap-2 shadow-lg shadow-purple-500/25 cursor-pointer disabled:opacity-50 btn-press transition-all duration-200"
         >
           <Activity className={`w-4 h-4 ${isVerifying ? 'animate-spin' : ''}`} />
-          <span>Kiểm tra Token trực tiếp (:8001)</span>
+          <span>Kiểm Tra Tính Hợp Lệ Của Token</span>
         </button>
       </div>
 

@@ -89,15 +89,9 @@ export const SystemTopologyView: React.FC = () => {
       {/* Top Banner */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-950/40 via-slate-900 to-slate-950 border border-slate-800/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              ARCHITECTURE: Microservices Cluster
-            </span>
-          </div>
-          <h2 className="text-xl font-black text-white mt-1 font-heading">Sơ đồ Kiến trúc & Trạng thái Nodes</h2>
+          <h2 className="text-xl font-black text-white font-heading">Trạng Thái Hạ Tầng Dịch Vụ</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Giám sát thời gian thực các Microservices đang chạy độc lập trên từng cổng riêng biệt.
+            Giám sát thời gian thực trạng thái kết nối các dịch vụ trong hệ thống.
           </p>
         </div>
 
